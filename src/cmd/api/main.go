@@ -1,7 +1,7 @@
 package main
 
 import (
-	"net/http"
+	"DidlyDoodash-api/src/handlers"
 
 	"github.com/gin-gonic/gin"
 )
@@ -11,9 +11,8 @@ func main() {
 
 	main := r.Group("/")
 	{
-		main.GET("/", func(ctx *gin.Context) {
-			ctx.JSON(http.StatusOK, gin.H{"message": "Welocme to didlydoodash api"})
-		})
+		main.POST("/signin", handlers.Signin)
+		main.POST("/signup", handlers.Signup)
 	}
 
 	r.Run("0.0.0.0:3000")
