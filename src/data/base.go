@@ -8,7 +8,7 @@ import (
 )
 
 type Base struct {
-	ID          string      `gorm:"size:22;primaryKey;" json:"id"`
+	ID          string      `gorm:"size:21;primaryKey;" json:"id"`
 	CreatedAt *time.Time     `gorm:"deafult:NOW()" json:"createdAt"`
 	UpdatedAt *time.Time     `gorm:"deafult:NOW()" json:"updatedAt"`
 }
