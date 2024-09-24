@@ -8,9 +8,9 @@ import (
 )
 
 type Base struct {
-	ID          string      `gorm:"size:21;primaryKey;" json:"id"`
-	CreatedAt *time.Time     `gorm:"deafult:NOW()" json:"createdAt"`
-	UpdatedAt *time.Time     `gorm:"deafult:NOW()" json:"updatedAt"`
+	ID        string     `gorm:"not null;size:21;primaryKey;unqiue;" json:"id"`
+	CreatedAt *time.Time `gorm:"deafult:NOW()" json:"createdAt"`
+	UpdatedAt *time.Time `gorm:"deafult:NOW()" json:"updatedAt"`
 }
 
 func (b *Base) BeforeCreate(tx *gorm.DB) (err error) {
@@ -20,13 +20,5 @@ func (b *Base) BeforeCreate(tx *gorm.DB) (err error) {
 			return err
 		}
 	}
-	now := time.Now()
-	if b.CreatedAt == nil {
-		b.CreatedAt = &now
-	}
-	if b.UpdatedAt == nil {
-		b.UpdatedAt = &now
-	}
-
 	return nil
 }

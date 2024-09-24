@@ -51,6 +51,26 @@ func Init() error {
 	return nil
 }
 
+func CheckForSchema(schema string) bool {
+	query := fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %s", schema)
+	if err := DB.Exec(query).Error; err != nil {
+		fmt.Printf("Error creating schema %s: %v\n", schema, err)
+		return false
+	}
+	fmt.Printf("Schema %s created successfully\n", schema)
+	return true
+}
+
+func DropSchema(schema string) bool {
+	query := fmt.Sprintf("DROP SCHEMA IF EXISTS %s CASCADE", schema)
+	if err := DB.Exec(query).Error; err != nil {
+		fmt.Printf("Error dropping schema %s: %v\n", schema, err)
+		return false
+	}
+	fmt.Printf("Schema %s dropped successfully\n", schema)
+	return true
+}
+
 func CreateType(typestr string, values string) bool {
 	// Check if type already exists
 	var count int64

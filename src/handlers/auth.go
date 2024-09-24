@@ -26,7 +26,6 @@ func Signin(c *gin.Context) {
 	}})
 }
 
-
 type SignupType struct  {
 	Username string `json:"username"`
 	Email string `json:"email"`
