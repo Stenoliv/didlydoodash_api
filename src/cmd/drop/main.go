@@ -11,5 +11,5 @@ func main() {
 
 	db.DropSchema(strings.Split(datatypes.UserSchema, ".")[0])
 	db.DropSchema(strings.Split(datatypes.OrganisationSchema, ".")[0])
-	// db.DropSchema(strings.Split(datatypes.ProjectSchema, ".")[0])
+	db.DropSchema(strings.Split(datatypes.ProjectSchema, ".")[0])
 }
