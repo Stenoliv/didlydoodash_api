@@ -19,20 +19,54 @@ func main() {
 	// Init connection to database
 	db.Init()
 
-	auth := r.Group("/")
+	// Auth endpoints
+	auth := r.Group("/auth")
 	{
 		auth.POST("/signin", handlers.Signin)
 		auth.POST("/signup", handlers.Signup)
+		auth.GET("/refresh", handlers.Refresh)
 	}
 
+	// Users endpoints
 	users := r.Group("/users", middleware.AuthMiddleware())
 	{
 		users.GET("", handlers.GetAllUsers)
+		users.GET("/:id", handlers.GetUser)
+		users.PUT("/:id", handlers.PutUser)
+		users.PATCH("/:id", handlers.PatchUser)
 	}
 
+	// Organisations endpoints
 	organisation := r.Group("/organisations", middleware.AuthMiddleware())
 	{
-		organisation.GET("", handlers.GetOrganisations)
+		// Organisation methods
+		organisation.GET("", handlers.GetOrganisations)          // Get organisation user is part of
+		organisation.POST("", handlers.CreateOrganisation)       // Create a new organisation
+		organisation.PATCH("/:id", handlers.UpdateOrganisation)  // Update organisation
+		organisation.DELETE("/:id", handlers.DeleteOrganisation) // Delete organisation
+
+		// Organisation members
+		organisation.GET("/:id/members", handlers.GetOrganisationMembers)              // Get organisation members
+		organisation.POST("/:id/members", handlers.AddOrganisationMember)              // Add member to organisation
+		organisation.PATCH("/:id/members/:userID", handlers.UpdateOrganisationMember)  // Update role etc... of organisation member
+		organisation.DELETE("/:id/members/:userID", handlers.DeleteOrganisationMember) // Remove organisation member
+	}
+
+	// Projects endpoints
+	project := r.Group("/project", middleware.AuthMiddleware())
+	{
+		// Basic endpoints
+		project.GET("/:id", handlers.GetProjects)                              // Get all projects of selected organisation
+		project.POST("/:id", handlers.CreateProjects)                          // Create a new project in organisation
+		project.PATCH("/:id/:projectID", handlers.UpdateProjects)              // Update a project in an organisation
+		project.DELETE("/:id/:projectID", handlers.DeleteProjects)             // Archive a project in an organisation
+		project.DELETE("/:id/:projectID/delete", handlers.PermaDeleteProjects) // Delete a project in an organisation
+
+		// Project members
+		project.GET("/:id/members", handlers.GetProjectMembers)              // Get project members
+		project.POST("/:id/members", handlers.GetProjectMember)              // Add project member
+		project.PATCH("/:id/members/:userID", handlers.UpdateProjectMember)  // Update project member
+		project.DELETE("/:id/members/:userID", handlers.DeleteProjectMember) // Remove member from project
 	}
 
 	r.Run("0.0.0.0:3000")

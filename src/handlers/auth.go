@@ -7,9 +7,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type SigninType struct  {
-	Email string `json:"email"`
-	Password string `json:"password"`
+type SigninType struct {
+	Identifier string `json:"email"`
+	Password   string `json:"password"`
 }
 
 func Signin(c *gin.Context) {
@@ -20,15 +20,12 @@ func Signin(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"user": &data.User{
-		Username: "Logged in",
-		Email: input.Email,
-	}})
+	c.JSON(http.StatusOK, nil)
 }
 
-type SignupType struct  {
+type SignupType struct {
 	Username string `json:"username"`
-	Email string `json:"email"`
+	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
@@ -42,6 +39,10 @@ func Signup(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"user": &data.User{
 		Username: input.Username,
-		Email: input.Email,
+		Email:    input.Email,
 	}})
+}
+
+func Refresh(c *gin.Context) {
+
 }
