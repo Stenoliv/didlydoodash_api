@@ -1,10 +1,14 @@
 package main
 
 import (
+	"DidlyDoodash-api/src/config"
 	"DidlyDoodash-api/src/db"
 	"DidlyDoodash-api/src/handlers"
 	"DidlyDoodash-api/src/handlers/middleware"
+	"fmt"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,7 +18,14 @@ func main() {
 
 	r.Use(gin.Recovery())
 	r.Use(middleware.RequestLoggerMiddleware())
-	r.Use(middleware.ErrorHandlerMiddleware())
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:5000"},
+		AllowMethods:     []string{"POST", "PATCH", "GET", "DELETE"},
+		AllowHeaders:     []string{"Origin"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
 
 	// Init connection to database
 	db.Init()
@@ -22,9 +33,10 @@ func main() {
 	// Auth endpoints
 	auth := r.Group("/auth")
 	{
-		auth.POST("/signin", handlers.Signin)
-		auth.POST("/signup", handlers.Signup)
-		auth.GET("/refresh", handlers.Refresh)
+		auth.POST("/signin", handlers.Signin)   // Login user
+		auth.POST("/signup", handlers.Signup)   // Register new user
+		auth.POST("/signout", handlers.Signout) // Logout user
+		auth.GET("/refresh", handlers.Refresh)  // Refresh access token
 	}
 
 	// Users endpoints
@@ -39,7 +51,7 @@ func main() {
 	// Organisations endpoints
 	organisation := r.Group("/organisations", middleware.AuthMiddleware())
 	{
-		// Organisation methods
+		// Basic endpoints
 		organisation.GET("", handlers.GetOrganisations)          // Get organisation user is part of
 		organisation.POST("", handlers.CreateOrganisation)       // Create a new organisation
 		organisation.PATCH("/:id", handlers.UpdateOrganisation)  // Update organisation
@@ -69,5 +81,5 @@ func main() {
 		project.DELETE("/:id/members/:userID", handlers.DeleteProjectMember) // Remove member from project
 	}
 
-	r.Run("0.0.0.0:3000")
+	r.Run(fmt.Sprintf(":%s", config.PORT))
 }

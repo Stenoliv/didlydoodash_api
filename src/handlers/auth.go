@@ -43,6 +43,10 @@ func Signup(c *gin.Context) {
 	}})
 }
 
-func Refresh(c *gin.Context) {
+func Signout(c *gin.Context) {
+	c.JSON(http.StatusOK, nil)
+}
 
+func Refresh(c *gin.Context) {
+	c.JSON(http.StatusOK, nil)
 }
