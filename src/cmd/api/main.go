@@ -25,6 +25,11 @@ func main() {
 		auth.POST("/signup", handlers.Signup)
 	}
 
+	users := r.Group("/users", middleware.AuthMiddleware())
+	{
+		users.GET("", handlers.GetAllUsers)
+	}
+
 	organisation := r.Group("/organisations", middleware.AuthMiddleware())
 	{
 		organisation.GET("", handlers.GetOrganisations)

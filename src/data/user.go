@@ -3,10 +3,14 @@ package data
 import (
 	"DidlyDoodash-api/src/db/datatypes"
 	"DidlyDoodash-api/src/utils"
+	"time"
 
 	"gorm.io/gorm"
 )
 
+var CurrentUser *User
+
+// User table struct
 type User struct {
 	Base
 	DeletedAt  gorm.DeletedAt `gorm:"index" json:"deletedAt,omitempty"`
@@ -18,4 +22,25 @@ type User struct {
 
 func (u *User) TableName() string {
 	return utils.GetTableName(datatypes.UserSchema, u)
+}
+
+func (u *User) SaveUser(tx *gorm.DB) error {
+	if err := tx.Create(&u).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
+// Store refresh tokens of user in a seperate table
+type UserSessions struct {
+	Base
+	UserID     Nanoid     `gorm:"" json:"-"`
+	User       User       `gorm:"" json:"-"`
+	JTI        Nanoid     `gorm:"" json:"-"`
+	ExpireDate *time.Time `gorm:"" json:"-"`
+	RememberMe bool       `gorm:"default:false;" json:"-"`
+}
+
+func (us *UserSessions) TableName() string {
+	return utils.GetTableName(datatypes.UserSchema, us)
 }
