@@ -38,7 +38,7 @@ func GenerateRefreshToken(userID data.Nanoid, jti data.Nanoid) (string, error) {
 	claims["sub"] = userID
 	claims["user"] = data.CurrentUser
 	claims["exp"] = time.Now().Add(time.Minute * time.Duration(lifespan)).Unix()
-	claims["type"] = "access"
+	claims["type"] = "refresh"
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(os.Getenv("TOKEN_SECRET")))
 }

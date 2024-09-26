@@ -8,8 +8,9 @@ import (
 )
 
 type SigninType struct {
-	Identifier string `json:"email"`
+	Email      string `json:"email"`
 	Password   string `json:"password"`
+	RememberMe bool   `json:"rememberMe"`
 }
 
 func Signin(c *gin.Context) {
@@ -20,13 +21,17 @@ func Signin(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, nil)
+	c.JSON(http.StatusOK, gin.H{"user": &data.User{
+		Username: "User",
+		Email:    input.Email,
+	}})
 }
 
 type SignupType struct {
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Username   string `json:"username"`
+	Email      string `json:"email"`
+	Password   string `json:"password"`
+	RememberMe bool   `json:"rememberMe"`
 }
 
 func Signup(c *gin.Context) {
