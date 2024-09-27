@@ -5,6 +5,7 @@ import (
 	"DidlyDoodash-api/src/utils"
 	"time"
 
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -30,7 +31,19 @@ func (u *User) SaveUser(tx *gorm.DB) error {
 	}
 	return nil
 }
+func (u *User) BeforeCreate(tx *gorm.DB) error {
+		hash, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return err
+		}
+		u.Password = string(hash)
+	return nil
+} 
+func (u *User)Validatepassword(input string) bool{
+	err := bcrypt.CompareHashAndPassword([]byte(u.Password) , []byte(input) )
+	return err == nil	
 
+}
 // Store refresh tokens of user in a seperate table
 type UserSessions struct {
 	Base

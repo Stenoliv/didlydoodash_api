@@ -8,24 +8,22 @@ import (
 )
 
 type Base struct {
-	ID        Nanoid     `gorm:"primaryKey;" json:"id"`
+	ID        string     `gorm:"primaryKey;" json:"id"`
 	CreatedAt *time.Time `gorm:"deafult:NOW()" json:"createdAt"`
 	UpdatedAt *time.Time `gorm:"deafult:NOW()" json:"updatedAt"`
 }
-
+func (b *Base) BeforeCreate(tx *gorm.DB) (err error) {
+		id, err := gonanoid.New()
+		if err != nil {
+			return err
+		}
+		b.ID = id
+	return nil
+}
 type Nanoid string
 
 func (n *Nanoid) GormDataType() string {
 	return "VARCHAR(21)"
 }
 
-func (n *Nanoid) BeforeCreate(tx *gorm.DB) (err error) {
-	if *n == "" {
-		id, err := gonanoid.New()
-		if err != nil {
-			return err
-		}
-		*n = Nanoid(id)
-	}
-	return nil
-}
+

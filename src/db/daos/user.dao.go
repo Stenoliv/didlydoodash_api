@@ -39,7 +39,7 @@ func GetUsers(c *gin.Context) (PaginationResult[data.User], error) {
 // Function to get user by id, username, email
 func GetUser(id string) (data.User, error) {
 	var user data.User
-	if err := db.DB.Model(&data.User{}).Scopes(PublicUserData).Where("id = ? OR username = ? OR email = ?", id, id, id).First(&user).Error; err != nil {
+	if err := db.DB.Model(&data.User{}).Where("id = ? OR username = ? OR email = ?", id, id, id).First(&user).Error; err != nil {
 		// Check if the error is gorm.ErrRecordNotFound
 		if err == gorm.ErrRecordNotFound {
 			return data.User{}, nil
