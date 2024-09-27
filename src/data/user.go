@@ -9,7 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var CurrentUser *User
+var CurrentUser *string
 
 // User table struct
 type User struct {
@@ -31,29 +31,42 @@ func (u *User) SaveUser(tx *gorm.DB) error {
 	}
 	return nil
 }
-func (u *User) BeforeCreate(tx *gorm.DB) error {
-		hash, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
-		if err != nil {
-			return err
-		}
-		u.Password = string(hash)
-	return nil
-} 
-func (u *User)Validatepassword(input string) bool{
-	err := bcrypt.CompareHashAndPassword([]byte(u.Password) , []byte(input) )
-	return err == nil	
 
+func (o *User) BeforeCreate(tx *gorm.DB) (err error) {
+	err = o.GenerateID()
+	if err != nil {
+		return err
+	}
+	hash, err := bcrypt.GenerateFromPassword([]byte(o.Password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+	o.Password = string(hash)
+	return nil
 }
+
+func (u *User) Validatepassword(input string) bool {
+	return bcrypt.CompareHashAndPassword([]byte(u.Password), []byte(input)) == nil
+}
+
 // Store refresh tokens of user in a seperate table
 type UserSessions struct {
 	Base
-	UserID     Nanoid     `gorm:"" json:"-"`
+	UserID     string     `gorm:"size:21;" json:"-"`
 	User       User       `gorm:"" json:"-"`
-	JTI        Nanoid     `gorm:"" json:"-"`
+	JTI        string     `gorm:"size:21;" json:"-"`
 	ExpireDate *time.Time `gorm:"" json:"-"`
 	RememberMe bool       `gorm:"default:false;" json:"-"`
 }
 
 func (us *UserSessions) TableName() string {
 	return utils.GetTableName(datatypes.UserSchema, us)
+}
+
+func (o *UserSessions) BeforeCreate(tx *gorm.DB) (err error) {
+	err = o.GenerateID()
+	if err != nil {
+		return err
+	}
+	return nil
 }

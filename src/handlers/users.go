@@ -22,7 +22,7 @@ func GetAllUsers(c *gin.Context) {
 func GetUser(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
-		id = string(data.CurrentUser.ID)
+		id = *data.CurrentUser
 	}
 	user, err := daos.GetUser(id)
 	if err != nil {
@@ -31,7 +31,7 @@ func GetUser(c *gin.Context) {
 	}
 
 	if (user == data.User{}) { // Zero-value check
-		c.JSON(http.StatusNotFound, gin.H{"message": "User not found","errorcode": "404"})
+		c.JSON(http.StatusNotFound, gin.H{"message": "User not found", "errorcode": "404"})
 		return
 	}
 

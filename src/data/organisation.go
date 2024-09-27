@@ -10,13 +10,21 @@ import (
 type Organisation struct {
 	Base
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deletedAt,omitempty"`
-	OwnerID   Nanoid         `gorm:"not null;" json:"-"`
+	OwnerID   string         `gorm:"not null;size:21;uniqueIndex:idx_o_name_user;" json:"-"`
 	Owner     User           `gorm:"not null;" json:"owner"`
-	Name      string         `gorm:"not null;" json:"name"`
+	Name      string         `gorm:"not null;uniqueIndex:idx_o_name_user;" json:"name"`
 }
 
 func (o *Organisation) TableName() string {
 	return utils.GetTableName(datatypes.OrganisationSchema, o)
+}
+
+func (o *Organisation) BeforeCreate(tx *gorm.DB) (err error) {
+	err = o.GenerateID()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (o *Organisation) AfterFind(tx *gorm.DB) (err error) {
@@ -29,11 +37,10 @@ func (o *Organisation) AfterFind(tx *gorm.DB) (err error) {
 }
 
 type OrganisationMember struct {
-	Base
-	OrganisationID Nanoid                     `gorm:"uniqueIndex:idx_o_member" json:"-"`
+	OrganisationID string                     `gorm:"not null;uniqueIndex:idx_o_member;size:21;" json:"-"`
 	Organisation   Organisation               `gorm:"" json:"organisation"`
 	Role           datatypes.OrganisationRole `gorm:"type:organisation_role" json:"role"`
-	UserID         Nanoid                     `gorm:"uniqueIndex:idx_o_member" json:"-"`
+	UserID         string                     `gorm:"not null;uniqueIndex:idx_o_member;size:21;" json:"-"`
 	User           User                       `gorm:"" json:"user"`
 }
 

@@ -17,7 +17,7 @@ func GetUsers(c *gin.Context) (PaginationResult[data.User], error) {
 	var users []data.User
 
 	// Use Paginate to fetch users and pagination metadata
-	if err := db.DB.Scopes(Paginate[data.User](c), PublicUserData).Not("id = ?", data.CurrentUser.ID).Find(&users).Error; err != nil {
+	if err := db.DB.Scopes(Paginate[data.User](c)).Not("id = ?", data.CurrentUser).Find(&users).Error; err != nil {
 		return PaginationResult[data.User]{}, err
 	}
 
@@ -40,10 +40,6 @@ func GetUsers(c *gin.Context) (PaginationResult[data.User], error) {
 func GetUser(id string) (data.User, error) {
 	var user data.User
 	if err := db.DB.Model(&data.User{}).Where("id = ? OR username = ? OR email = ?", id, id, id).First(&user).Error; err != nil {
-		// Check if the error is gorm.ErrRecordNotFound
-		if err == gorm.ErrRecordNotFound {
-			return data.User{}, nil
-		}
 		return data.User{}, err
 	}
 	return user, nil

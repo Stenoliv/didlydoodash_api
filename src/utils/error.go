@@ -16,8 +16,6 @@ func NewEndpointError(code int, tag string) *EndpointError {
 const (
 	// User input error codes
 	CodeInvalidInput    = 100
-	CodeInvalidUsername = 101
-	CodeInvalidPassword = 102
 
 	// Authentication error codes
 	CodeUserNotFound        = 200
@@ -38,18 +36,14 @@ const (
 // User input errors
 var (
 	InvalidInput    = NewEndpointError(CodeInvalidInput, "Invalid input")
-	InvalidUsername = NewEndpointError(CodeInvalidUsername, "Invalid Username")
-	InvalidPassword = NewEndpointError(CodeInvalidPassword, "Wrong Password")
 )
 
 // Authentication errors
 var (
 	UserNotFound        = NewEndpointError(CodeUserNotFound, "Account not found")
 	AuthenticationError = NewEndpointError(CodeAuthenticationError, "Failed to authenticate")
-	TokenError          = NewEndpointError(CodeTokenError, "Failed to generate token")
 	InvalidToken        = NewEndpointError(CodeInvalidToken, "JWT not valid")
 	NotAuthenticated    = NewEndpointError(CodeNotAuthenticated, "You are not authenticated")
-	NotVerified         = NewEndpointError(CodeNotVerified, "You are not verified")
 )
 
 // Server errors

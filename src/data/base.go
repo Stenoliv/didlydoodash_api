@@ -4,26 +4,21 @@ import (
 	"time"
 
 	gonanoid "github.com/matoous/go-nanoid/v2"
-	"gorm.io/gorm"
 )
 
 type Base struct {
-	ID        string     `gorm:"primaryKey;" json:"id"`
+	ID        string     `gorm:"not null;primaryKey;size:21;" json:"id"`
 	CreatedAt *time.Time `gorm:"deafult:NOW()" json:"createdAt"`
 	UpdatedAt *time.Time `gorm:"deafult:NOW()" json:"updatedAt"`
 }
-func (b *Base) BeforeCreate(tx *gorm.DB) (err error) {
+
+func (b *Base) GenerateID() (err error) {
+	if b.ID == "" {
 		id, err := gonanoid.New()
 		if err != nil {
 			return err
 		}
 		b.ID = id
+	}
 	return nil
 }
-type Nanoid string
-
-func (n *Nanoid) GormDataType() string {
-	return "VARCHAR(21)"
-}
-
-
