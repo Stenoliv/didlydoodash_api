@@ -1,8 +1,8 @@
 package handlers
 
 import (
-	"DidlyDoodash-api/src/daos"
 	"DidlyDoodash-api/src/data"
+	"DidlyDoodash-api/src/db/daos"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -31,7 +31,7 @@ func GetUser(c *gin.Context) {
 	}
 
 	if (user == data.User{}) { // Zero-value check
-		c.JSON(http.StatusNotFound, gin.H{"message": "User not found"})
+		c.JSON(http.StatusNotFound, gin.H{"message": "User not found","errorcode": "404"})
 		return
 	}
 
@@ -44,7 +44,7 @@ func PutUser(c *gin.Context) {
 	c.JSON(http.StatusOK, nil)
 }
 
-// Put profile/user
+// Patch profile/user
 func PatchUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, nil)

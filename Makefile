@@ -1,11 +1,11 @@
 run: build
-	@./bin/discgolf.exe
+	@./bin/didlydoodash.exe
 
 dev:
 	go run src/cmd/api/main.go
 
 build:
-	@go build -o bin/discgolf.exe src/cmd/api/main.go
+	@go build -o bin/didlydoodash.exe src/cmd/api/main.go
 
 database:
 	@go run src/cmd/migrate/main.go
