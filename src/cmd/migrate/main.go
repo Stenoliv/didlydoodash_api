@@ -17,6 +17,7 @@ func main() {
 	// Check all tables under user schema
 	db.CheckForSchema(strings.Split(datatypes.UserSchema, ".")[0])
 	db.DB.AutoMigrate(&data.User{})
+	db.DB.AutoMigrate(&data.UserSession{})
 
 	// Check all tables under organisation schema
 	db.CheckForSchema(strings.Split(datatypes.OrganisationSchema, ".")[0])

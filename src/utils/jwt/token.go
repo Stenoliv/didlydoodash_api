@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"DidlyDoodash-api/src/data"
 	"fmt"
 	"os"
 	"strconv"
@@ -10,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	jwt "github.com/golang-jwt/jwt/v5"
 	gonanoid "github.com/matoous/go-nanoid/v2"
+	"gorm.io/gorm"
 )
 
 // Generate a new access token
@@ -32,15 +34,31 @@ func GenerateAccessToken(userID string) (string, error) {
 }
 
 // Generate a new refresh token
-func GenerateRefreshToken(userID string, jti string) (string, error) {
-	lifespan, err := GetRefreshTime()
+func GenerateRefreshToken(userID string, rememberMe bool, tx *gorm.DB) (string, error) {
+	lifespan, err := GetRefreshTime(rememberMe)
+	if err != nil {
+		return "", err
+	}
+	jti, err := gonanoid.New()
+	if err != nil {
+		return "", err
+	}
+	exp := time.Now().Add(time.Hour * time.Duration(lifespan))
+	userSession := &data.UserSession{
+		UserID:     userID,
+		JTI:        jti,
+		ExpireDate: &exp,
+		RememberMe: rememberMe,
+	}
+	err = userSession.SaveSession(tx)
 	if err != nil {
 		return "", err
 	}
 	claims := jwt.MapClaims{}
 	claims["jti"] = jti
 	claims["sub"] = userID
-	claims["exp"] = time.Now().Add(time.Minute * time.Duration(lifespan)).Unix()
+	claims["exp"] = time.Now().Add(time.Hour * time.Duration(lifespan)).Unix()
+	claims["rememberMe"] = rememberMe
 	claims["type"] = "refresh"
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString([]byte(os.Getenv("TOKEN_SECRET")))
@@ -89,6 +107,9 @@ func GetAccessTime() (int, error) {
 }
 
 // Get refresh token time from .env
-func GetRefreshTime() (int, error) {
+func GetRefreshTime(rememberMe bool) (int, error) {
+	if rememberMe {
+		return strconv.Atoi(os.Getenv("TOKEN_REMEMBER_REFRESH"))
+	}
 	return strconv.Atoi(os.Getenv("TOKEN_TIME_REFRESH"))
 }

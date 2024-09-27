@@ -6,29 +6,31 @@ import (
 	"DidlyDoodash-api/src/db/daos"
 	"DidlyDoodash-api/src/utils"
 	"DidlyDoodash-api/src/utils/jwt"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	gonanoid "github.com/matoous/go-nanoid/v2"
 )
 
 /**
  * Signin Function
  */
 type SigninInput struct {
-	Email      string `json:"email"`
-	Password   string `json:"password"`
-	RememberMe bool   `json:"rememberMe"`
+	Email      string `json:"email" binding:"required,email"`
+	Password   string `json:"password" binding:"required"`
+	RememberMe bool   `json:"rememberMe" default:"false"`
 }
 
 func Signin(c *gin.Context) {
 	var input SigninInput
+	tx := db.DB.Begin()
 	// Bind request body
 	err := c.BindJSON(&input)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.InvalidInput)
 		return
 	}
+	fmt.Print(input)
 	// Try to get user from database
 	user, err := daos.GetUser(input.Email)
 	if err != nil {
@@ -42,21 +44,13 @@ func Signin(c *gin.Context) {
 		return
 	}
 	// Generate tokens
-	refreshID, err := gonanoid.New()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, utils.ServerError)
-		return
-	}
-	/**
-	 * Save refresh id to userSession table
-	 */
 	access, err := jwt.GenerateAccessToken(user.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, utils.ServerError)
 		return
 	}
 	// implement rememberMe
-	refresh, err := jwt.GenerateRefreshToken(user.ID, refreshID)
+	refresh, err := jwt.GenerateRefreshToken(user.ID, input.RememberMe, tx)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, utils.ServerError)
 		return
@@ -66,6 +60,7 @@ func Signin(c *gin.Context) {
 		Refresh: &refresh,
 	}
 
+	tx.Commit()
 	// Send final response
 	c.JSON(http.StatusOK, gin.H{"user": user, "tokens": tokens})
 }
@@ -81,14 +76,14 @@ type SignupInput struct {
 
 func Signup(c *gin.Context) {
 	var input SignupInput
+	tx := db.DB.Begin()
 	// Bind request body
 	err := c.BindJSON(&input)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.InvalidInput)
 		return
 	}
-	// Create a transaction and a new user object
-	tx := db.DB.Begin()
+	// Create new user object
 	user := &data.User{Username: input.Username, Email: input.Email, Password: input.Password}
 	// Try to save new user to database
 	err = user.SaveUser(tx)
@@ -98,21 +93,13 @@ func Signup(c *gin.Context) {
 		return
 	}
 	// Generate tokens
-	refreshID, err := gonanoid.New()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, utils.ServerError)
-		return
-	}
-	/**
-	 * Save refresh id to userSession table
-	 */
 	access, err := jwt.GenerateAccessToken(user.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, utils.ServerError)
 		return
 	}
 	// implement rememberMe
-	refresh, err := jwt.GenerateRefreshToken(user.ID, refreshID)
+	refresh, err := jwt.GenerateRefreshToken(user.ID, false, tx)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, utils.ServerError)
 		return
@@ -127,10 +114,12 @@ func Signup(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"user": user, "tokens": tokens})
 }
 
+// Signout function
 func Signout(c *gin.Context) {
 	c.JSON(http.StatusOK, nil)
 }
 
+// Refresh function
 func Refresh(c *gin.Context) {
 	// Extract token from request and validate
 	tokenStr := jwt.ExtractToken(c)

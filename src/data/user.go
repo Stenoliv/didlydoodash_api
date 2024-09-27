@@ -50,22 +50,29 @@ func (u *User) Validatepassword(input string) bool {
 }
 
 // Store refresh tokens of user in a seperate table
-type UserSessions struct {
+type UserSession struct {
 	Base
-	UserID     string     `gorm:"size:21;" json:"-"`
+	UserID     string     `gorm:"size:21;uniquIndex:idx_token;" json:"-"`
 	User       User       `gorm:"" json:"-"`
-	JTI        string     `gorm:"size:21;" json:"-"`
-	ExpireDate *time.Time `gorm:"" json:"-"`
-	RememberMe bool       `gorm:"default:false;" json:"-"`
+	JTI        string     `gorm:"size:21;unique;uniquIndex:idx_token;" json:"-"`
+	ExpireDate *time.Time `gorm:"not null;uniquIndex:idx_token;" json:"-"`
+	RememberMe bool       `gorm:"not null;" json:"-" default:"false"`
 }
 
-func (us *UserSessions) TableName() string {
+func (us *UserSession) TableName() string {
 	return utils.GetTableName(datatypes.UserSchema, us)
 }
 
-func (o *UserSessions) BeforeCreate(tx *gorm.DB) (err error) {
+func (o *UserSession) BeforeCreate(tx *gorm.DB) (err error) {
 	err = o.GenerateID()
 	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (o *UserSession) SaveSession(tx *gorm.DB) (err error) {
+	if err = tx.Create(o).Error; err != nil {
 		return err
 	}
 	return nil
