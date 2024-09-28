@@ -79,6 +79,14 @@ func ExtractToken(c *gin.Context) string {
 }
 
 // Validate token
+func ParseTokenWithoutValidation(tokenIn string) (token *jwt.Token, err error) {
+	token, _, err = new(jwt.Parser).ParseUnverified(tokenIn, jwt.MapClaims{})
+	if err != nil {
+		return nil, err
+	}
+	return token, nil
+}
+
 func ValidateToken(tokenIn string) (token *jwt.Token, err error) {
 	token, err = jwt.Parse(tokenIn, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
@@ -95,8 +103,8 @@ func ValidateToken(tokenIn string) (token *jwt.Token, err error) {
 // Extract payload from token
 func ExtractTokenClaims(token *jwt.Token) (jwt.MapClaims, error) {
 	claims, ok := token.Claims.(jwt.MapClaims)
-	if !ok || !token.Valid {
-		return nil, fmt.Errorf("invalid token")
+	if !ok {
+		return nil, fmt.Errorf("No claims to parse")
 	}
 	return claims, nil
 }

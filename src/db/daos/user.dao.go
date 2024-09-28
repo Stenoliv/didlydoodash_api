@@ -44,3 +44,11 @@ func GetUser(id string) (data.User, error) {
 	}
 	return user, nil
 }
+
+func GetSession(id string, jti string) (data.UserSession, error) {
+	var session data.UserSession
+	if err := db.DB.Model(&data.UserSession{}).Where("user_id = ? AND jti = ?", id, jti).First(&session).Error; err != nil {
+		return data.UserSession{}, err
+	}
+	return session, nil
+}

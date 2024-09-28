@@ -6,8 +6,8 @@ import (
 	"DidlyDoodash-api/src/db/daos"
 	"DidlyDoodash-api/src/utils"
 	"DidlyDoodash-api/src/utils/jwt"
-	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -30,7 +30,6 @@ func Signin(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, utils.InvalidInput)
 		return
 	}
-	fmt.Print(input)
 	// Try to get user from database
 	user, err := daos.GetUser(input.Email)
 	if err != nil {
@@ -52,6 +51,7 @@ func Signin(c *gin.Context) {
 	// implement rememberMe
 	refresh, err := jwt.GenerateRefreshToken(user.ID, input.RememberMe, tx)
 	if err != nil {
+		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, utils.ServerError)
 		return
 	}
@@ -101,6 +101,7 @@ func Signup(c *gin.Context) {
 	// implement rememberMe
 	refresh, err := jwt.GenerateRefreshToken(user.ID, false, tx)
 	if err != nil {
+		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, utils.ServerError)
 		return
 	}
@@ -121,48 +122,85 @@ func Signout(c *gin.Context) {
 
 // Refresh function
 func Refresh(c *gin.Context) {
-	// Extract token from request and validate
-	tokenStr := jwt.ExtractToken(c)
-	token, err := jwt.ValidateToken(tokenStr)
-	if err != nil {
+	unauthorizedResponse := func() {
 		c.JSON(http.StatusUnauthorized, utils.AuthenticationError)
+	}
+
+	// Extract token from request without validation
+	tokenStr := jwt.ExtractToken(c)
+	token, err := jwt.ParseTokenWithoutValidation(tokenStr) // Parse without validation
+	if err != nil {
+		utils.LogError(err, "Failed to parse token")
+		unauthorizedResponse()
 		return
 	}
 
-	// Extract claims
 	claims, err := jwt.ExtractTokenClaims(token)
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, utils.AuthenticationError)
+		utils.LogError(err, "Failed to extract claims")
+		unauthorizedResponse()
 		return
 	}
 
 	// Extract subject from token
 	sub, err := claims.GetSubject()
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, utils.AuthenticationError)
+		utils.LogError(err, "Failed to extract subject")
+		unauthorizedResponse()
 		return
 	}
 
-	/**
-	 * Check for refresh token in db
-	 */
-
-	// Check if refresh token
+	// Check if it's a refresh token
 	if claims["type"] != "refresh" {
-		c.JSON(http.StatusUnauthorized, utils.AuthenticationError)
+		utils.LogError(err, "Token not refresh")
+		unauthorizedResponse()
 		return
 	}
 
-	// Generate new access token
-	access, err := jwt.GenerateAccessToken(sub)
-	if err != nil {
-		c.JSON(http.StatusUnauthorized, utils.AuthenticationError)
+	// Check for token in database
+	var session data.UserSession
+	jti, ok := claims["jti"].(string)
+	if !ok {
+		utils.LogError(err, "Failed to retrieve jti")
+		unauthorizedResponse()
 		return
 	}
-	tokens := &utils.Tokens{
-		Access:  &access,
-		Refresh: &tokenStr,
+
+	if session, err = daos.GetSession(sub, jti); err != nil {
+		utils.LogError(err, "Didn't find a session")
+		unauthorizedResponse()
+		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"tokens": tokens})
+	// Now check if the session is still valid
+	if session.ExpireDate.After(time.Now()) {
+		_, err = jwt.ValidateToken(tokenStr)
+		if err != nil {
+			utils.LogError(err, "Not a valid token")
+			unauthorizedResponse()
+			return
+		}
+
+		// Generate new access token
+		access, err := jwt.GenerateAccessToken(sub)
+		if err != nil {
+			utils.LogError(err, "Failed to generate a access token")
+			unauthorizedResponse()
+			return
+		}
+		tokens := &utils.Tokens{
+			Access:  &access,
+			Refresh: &tokenStr,
+		}
+
+		c.JSON(http.StatusOK, gin.H{"tokens": tokens})
+	} else {
+		// Session has expired in the database
+		if err = db.DB.Delete(&session, "user_id = ? AND jti = ?", sub, jti).Error; err != nil {
+			utils.LogError(err, "Failed to delete old record in database")
+			unauthorizedResponse()
+			return
+		}
+		unauthorizedResponse()
+	}
 }

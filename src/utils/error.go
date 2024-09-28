@@ -1,5 +1,17 @@
 package utils
 
+import (
+	"log"
+	"time"
+)
+
+// LogError logs errors with a timestamp to the console
+func LogError(err error, message string) {
+	if err != nil {
+		log.Printf("[%s] ERROR: %s - %v\n", time.Now().Format(time.RFC3339), message, err)
+	}
+}
+
 // EndpointError defines the structure of an endpoint error response.
 type EndpointError struct {
 	Status string `json:"status"`
@@ -15,7 +27,7 @@ func NewEndpointError(code int, tag string) *EndpointError {
 // Error codes
 const (
 	// User input error codes
-	CodeInvalidInput    = 100
+	CodeInvalidInput = 100
 
 	// Authentication error codes
 	CodeUserNotFound        = 200
@@ -25,8 +37,8 @@ const (
 	CodeNotAuthenticated    = 204
 	CodeNotVerified         = 205
 
-	// Too many requests
-	CodeTooManyRequests = 400
+	// Organisation errors: 300
+	CodeOrgCreate = 300
 
 	// Server error codes
 	CodeServerError   = 500
@@ -35,7 +47,7 @@ const (
 
 // User input errors
 var (
-	InvalidInput    = NewEndpointError(CodeInvalidInput, "Invalid input")
+	InvalidInput = NewEndpointError(CodeInvalidInput, "Invalid input")
 )
 
 // Authentication errors
@@ -46,13 +58,13 @@ var (
 	NotAuthenticated    = NewEndpointError(CodeNotAuthenticated, "You are not authenticated")
 )
 
+// Organisation errors
+var (
+	FailedToCreateOrg = NewEndpointError(CodeOrgCreate, "Failed to create organisation try again later")
+)
+
 // Server errors
 var (
 	ServerError   = NewEndpointError(CodeServerError, "Error occurred on server")
 	SaveUserError = NewEndpointError(CodeSaveUserError, "Error on registering user")
-)
-
-// Too many requests errors
-var (
-	TooManyRequests = NewEndpointError(CodeTooManyRequests, "Too many requests")
 )

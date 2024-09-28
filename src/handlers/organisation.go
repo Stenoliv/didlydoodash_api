@@ -1,22 +1,82 @@
 package handlers
 
 import (
+	"DidlyDoodash-api/src/data"
+	"DidlyDoodash-api/src/db"
+	"DidlyDoodash-api/src/db/daos"
+	"DidlyDoodash-api/src/db/datatypes"
+	"DidlyDoodash-api/src/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 func GetOrganisations(c *gin.Context) {
-	organisations := []map[string]string{
-		{"name": "Test"},
-		{"name": "Test2"},
+	orgs, err := daos.GetAllOrgs()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, utils.ServerError)
+		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"organisations": organisations})
+	c.JSON(http.StatusOK, gin.H{"organisations": orgs})
 }
 
+type OrganisationInput struct {
+	Name    string                    `json:"name" binding:"required"`
+	Members []OrganisationMemberInput `json:"members"`
+}
+
+type OrganisationMemberInput struct {
+	ID   string                     `json:"userId"`
+	Role datatypes.OrganisationRole `json:"role"`
+}
+
+// Create organisation function
 func CreateOrganisation(c *gin.Context) {
-	c.JSON(http.StatusOK, nil)
+	var input OrganisationInput
+	tx := db.DB.Begin()
+	// Bind request body to input struct
+	if err := c.BindJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, utils.InvalidInput)
+		return
+	}
+
+	// Create Organisation object
+	org := &data.Organisation{
+		Name:    input.Name,
+		OwnerID: *data.CurrentUser,
+	}
+
+	// Save organisation object to database
+	if err := org.SaveOrganisation(tx); err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, utils.FailedToCreateOrg)
+		return
+	}
+
+	// Create organisation members
+	for _, member := range input.Members {
+		organisationMember := &data.OrganisationMember{
+			OrganisationID: org.ID,
+			UserID:         member.ID,
+			Role:           member.Role,
+		}
+
+		if err := organisationMember.SaveMember(tx); err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, utils.FailedToCreateOrg)
+			return
+		}
+	}
+
+	// Try to commit to database
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, utils.ServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"organisation": org})
 }
 
 func UpdateOrganisation(c *gin.Context) {

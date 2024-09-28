@@ -14,11 +14,10 @@ var CurrentUser *string
 // User table struct
 type User struct {
 	Base
-	DeletedAt  gorm.DeletedAt `gorm:"index" json:"deletedAt,omitempty"`
-	Username   string         `gorm:"size:50;not null:unique;index;" json:"username"`
-	Email      string         `gorm:"size:255;not null;unique;" json:"email"`
-	Password   string         `gorm:"size:255;not null;" json:"-"`
-	IsVerified bool           `gorm:"default:false;" json:"isVerified,omitempty"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"deletedAt,omitempty"`
+	Username  string         `gorm:"size:50;not null:unique;index;" json:"username"`
+	Email     string         `gorm:"size:255;not null;unique;" json:"email"`
+	Password  string         `gorm:"size:255;not null;" json:"-"`
 }
 
 func (u *User) TableName() string {
@@ -51,7 +50,6 @@ func (u *User) Validatepassword(input string) bool {
 
 // Store refresh tokens of user in a seperate table
 type UserSession struct {
-	Base
 	UserID     string     `gorm:"size:21;uniquIndex:idx_token;" json:"-"`
 	User       User       `gorm:"" json:"-"`
 	JTI        string     `gorm:"size:21;unique;uniquIndex:idx_token;" json:"-"`
@@ -64,10 +62,6 @@ func (us *UserSession) TableName() string {
 }
 
 func (o *UserSession) BeforeCreate(tx *gorm.DB) (err error) {
-	err = o.GenerateID()
-	if err != nil {
-		return err
-	}
 	return nil
 }
 

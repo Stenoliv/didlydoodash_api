@@ -19,6 +19,13 @@ func (o *Organisation) TableName() string {
 	return utils.GetTableName(datatypes.OrganisationSchema, o)
 }
 
+func (o *Organisation) SaveOrganisation(tx *gorm.DB) (err error) {
+	if err = tx.Create(&o).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 func (o *Organisation) BeforeCreate(tx *gorm.DB) (err error) {
 	err = o.GenerateID()
 	if err != nil {
@@ -36,6 +43,7 @@ func (o *Organisation) AfterFind(tx *gorm.DB) (err error) {
 	return nil
 }
 
+// Organisation member
 type OrganisationMember struct {
 	OrganisationID string                     `gorm:"not null;uniqueIndex:idx_o_member;size:21;" json:"-"`
 	Organisation   Organisation               `gorm:"" json:"organisation"`
@@ -46,6 +54,10 @@ type OrganisationMember struct {
 
 func (om *OrganisationMember) TableName() string {
 	return utils.GetTableName(datatypes.OrganisationSchema, om)
+}
+
+func (om *OrganisationMember) SaveMember(db *gorm.DB) (err error) {
+	return db.Create(&om).Error
 }
 
 func (om *OrganisationMember) AfterFind(tx *gorm.DB) (err error) {
