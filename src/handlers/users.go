@@ -1,8 +1,7 @@
 package handlers
 
 import (
-	"DidlyDoodash-api/src/data"
-	"DidlyDoodash-api/src/db/daos"
+	"DidlyDoodash-api/src/db/models"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -10,7 +9,7 @@ import (
 
 // Get all users paginated
 func GetAllUsers(c *gin.Context) {
-	result, err := daos.GetUsers(c)
+	result, err := models.GetUsers(c)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -22,20 +21,20 @@ func GetAllUsers(c *gin.Context) {
 func GetUser(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
-		id = *data.CurrentUser
+		id = *models.CurrentUser
 	}
-	user, err := daos.GetUser(id)
+	usr, err := models.GetUser(id)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	if (user == data.User{}) { // Zero-value check
+	if (usr == models.User{}) { // Zero-value check
 		c.JSON(http.StatusNotFound, gin.H{"message": "User not found", "errorcode": "404"})
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, usr)
 }
 
 // Put profile/user

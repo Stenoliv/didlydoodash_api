@@ -1,9 +1,8 @@
 package handlers
 
 import (
-	"DidlyDoodash-api/src/data"
 	"DidlyDoodash-api/src/db"
-	"DidlyDoodash-api/src/db/daos"
+	"DidlyDoodash-api/src/db/models"
 	"DidlyDoodash-api/src/utils"
 	"DidlyDoodash-api/src/utils/jwt"
 	"net/http"
@@ -31,7 +30,7 @@ func Signin(c *gin.Context) {
 		return
 	}
 	// Try to get user from database
-	user, err := daos.GetUser(input.Email)
+	user, err := models.GetUser(input.Email)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, utils.InvalidInput)
 		return
@@ -84,7 +83,7 @@ func Signup(c *gin.Context) {
 		return
 	}
 	// Create new user object
-	user := &data.User{Username: input.Username, Email: input.Email, Password: input.Password}
+	user := &models.User{Username: input.Username, Email: input.Email, Password: input.Password}
 	// Try to save new user to database
 	err = user.SaveUser(tx)
 	if err != nil {
@@ -158,7 +157,7 @@ func Refresh(c *gin.Context) {
 	}
 
 	// Check for token in database
-	var session data.UserSession
+	var session models.UserSession
 	jti, ok := claims["jti"].(string)
 	if !ok {
 		utils.LogError(err, "Failed to retrieve jti")
@@ -166,7 +165,7 @@ func Refresh(c *gin.Context) {
 		return
 	}
 
-	if session, err = daos.GetSession(sub, jti); err != nil {
+	if session, err = models.GetSession(sub, jti); err != nil {
 		utils.LogError(err, "Didn't find a session")
 		unauthorizedResponse()
 		return

@@ -1,7 +1,7 @@
 package jwt
 
 import (
-	"DidlyDoodash-api/src/data"
+	"DidlyDoodash-api/src/db/models"
 	"fmt"
 	"os"
 	"strconv"
@@ -44,7 +44,7 @@ func GenerateRefreshToken(userID string, rememberMe bool, tx *gorm.DB) (string, 
 		return "", err
 	}
 	exp := time.Now().Add(time.Hour * time.Duration(lifespan))
-	userSession := &data.UserSession{
+	userSession := &models.UserSession{
 		UserID:     userID,
 		JTI:        jti,
 		ExpireDate: &exp,

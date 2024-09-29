@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"DidlyDoodash-api/src/data"
+	"DidlyDoodash-api/src/db/models"
 	"DidlyDoodash-api/src/utils"
 	"DidlyDoodash-api/src/utils/jwt"
 	"net/http"
@@ -29,7 +29,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusUnauthorized, utils.NotAuthenticated)
 			return
 		}
-		data.CurrentUser = &sub
+		models.CurrentUser = &sub
 
 		c.Next()
 	}

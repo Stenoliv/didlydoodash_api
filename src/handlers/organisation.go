@@ -1,10 +1,9 @@
 package handlers
 
 import (
-	"DidlyDoodash-api/src/data"
 	"DidlyDoodash-api/src/db"
-	"DidlyDoodash-api/src/db/daos"
 	"DidlyDoodash-api/src/db/datatypes"
+	"DidlyDoodash-api/src/db/models"
 	"DidlyDoodash-api/src/utils"
 	"net/http"
 
@@ -12,7 +11,7 @@ import (
 )
 
 func GetOrganisations(c *gin.Context) {
-	orgs, err := daos.GetAllOrgs()
+	orgs, err := models.GetAllOrgs()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, utils.ServerError)
 		return
@@ -42,9 +41,9 @@ func CreateOrganisation(c *gin.Context) {
 	}
 
 	// Create Organisation object
-	org := &data.Organisation{
+	org := &models.Organisation{
 		Name:    input.Name,
-		OwnerID: *data.CurrentUser,
+		OwnerID: *models.CurrentUser,
 	}
 
 	// Save organisation object to database
@@ -56,7 +55,7 @@ func CreateOrganisation(c *gin.Context) {
 
 	// Create organisation members
 	for _, member := range input.Members {
-		organisationMember := &data.OrganisationMember{
+		organisationMember := &models.OrganisationMember{
 			OrganisationID: org.ID,
 			UserID:         member.ID,
 			Role:           member.Role,
