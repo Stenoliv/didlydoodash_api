@@ -13,6 +13,7 @@ type Organisation struct {
 	OwnerID   string         `gorm:"not null;size:21;uniqueIndex:idx_o_name_user;" json:"-"`
 	Owner     User           `gorm:"not null;" json:"owner"`
 	Name      string         `gorm:"not null;uniqueIndex:idx_o_name_user;" json:"name"`
+	Chats     []ChatRoom     `gorm:"" json:"chatRooms"`
 }
 
 func (o *Organisation) TableName() string {

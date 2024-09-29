@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"DidlyDoodash-api/src/db"
+	"DidlyDoodash-api/src/db/daos"
 	"DidlyDoodash-api/src/db/datatypes"
 	"DidlyDoodash-api/src/db/models"
 	"DidlyDoodash-api/src/utils"
@@ -11,7 +12,7 @@ import (
 )
 
 func GetOrganisations(c *gin.Context) {
-	orgs, err := models.GetAllOrgs()
+	orgs, err := daos.GetAllOrgs()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, utils.ServerError)
 		return

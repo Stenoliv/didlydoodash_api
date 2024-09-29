@@ -23,6 +23,9 @@ func main() {
 	db.CheckForSchema(strings.Split(datatypes.OrganisationSchema, ".")[0])
 	db.DB.AutoMigrate(&models.Organisation{})
 	db.DB.AutoMigrate(&models.OrganisationMember{})
+	db.DB.AutoMigrate(&models.ChatRoom{})
+	db.DB.AutoMigrate(&models.ChatMember{})
+	db.DB.AutoMigrate(&models.ChatMessage{})
 
 	// Check all tables under the project schema
 	db.CheckForSchema(strings.Split(datatypes.ProjectSchema, ".")[0])

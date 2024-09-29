@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"DidlyDoodash-api/src/db"
+	"DidlyDoodash-api/src/db/daos"
 	"DidlyDoodash-api/src/db/models"
 	"DidlyDoodash-api/src/utils"
 	"DidlyDoodash-api/src/utils/jwt"
@@ -30,7 +31,7 @@ func Signin(c *gin.Context) {
 		return
 	}
 	// Try to get user from database
-	user, err := models.GetUser(input.Email)
+	user, err := daos.GetUser(input.Email)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, utils.InvalidInput)
 		return
@@ -165,7 +166,7 @@ func Refresh(c *gin.Context) {
 		return
 	}
 
-	if session, err = models.GetSession(sub, jti); err != nil {
+	if session, err = daos.GetSession(sub, jti); err != nil {
 		utils.LogError(err, "Didn't find a session")
 		unauthorizedResponse()
 		return

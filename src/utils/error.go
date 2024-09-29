@@ -40,6 +40,8 @@ const (
 	// Organisation errors: 300
 	CodeOrgCreate = 300
 
+	CodeChatNotFound = 350
+
 	// Server error codes
 	CodeServerError   = 500
 	CodeSaveUserError = 501
@@ -61,6 +63,8 @@ var (
 // Organisation errors
 var (
 	FailedToCreateOrg = NewEndpointError(CodeOrgCreate, "Failed to create organisation try again later")
+
+	ChatNotFound = NewEndpointError(CodeChatNotFound, "Chat not found")
 )
 
 // Server errors

@@ -62,6 +62,9 @@ func main() {
 		organisation.POST("/:id/members", handlers.AddOrganisationMember)              // Add member to organisation
 		organisation.PATCH("/:id/members/:userID", handlers.UpdateOrganisationMember)  // Update role etc... of organisation member
 		organisation.DELETE("/:id/members/:userID", handlers.DeleteOrganisationMember) // Remove organisation member
+
+		organisation.GET("/:id/chats", handlers.GetChats)
+		organisation.POST("/:id/chats", handlers.CreateChat)
 	}
 
 	// Projects endpoints
