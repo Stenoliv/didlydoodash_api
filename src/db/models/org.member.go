@@ -2,7 +2,6 @@ package models
 
 import (
 	"DidlyDoodash-api/src/db/datatypes"
-	"DidlyDoodash-api/src/utils"
 
 	"gorm.io/gorm"
 )
@@ -14,10 +13,6 @@ type OrganisationMember struct {
 	Role           datatypes.OrganisationRole `gorm:"type:organisation_role" json:"role"`
 	UserID         string                     `gorm:"not null;uniqueIndex:idx_o_member;size:21;" json:"-"`
 	User           User                       `gorm:"" json:"user"`
-}
-
-func (om *OrganisationMember) TableName() string {
-	return utils.GetTableName(datatypes.OrganisationSchema, om)
 }
 
 func (om *OrganisationMember) SaveMember(db *gorm.DB) (err error) {

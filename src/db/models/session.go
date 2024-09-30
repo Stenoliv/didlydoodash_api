@@ -1,8 +1,6 @@
 package models
 
 import (
-	"DidlyDoodash-api/src/db/datatypes"
-	"DidlyDoodash-api/src/utils"
 	"time"
 
 	"gorm.io/gorm"
@@ -15,10 +13,6 @@ type UserSession struct {
 	JTI        string     `gorm:"size:21;unique;uniquIndex:idx_token;" json:"-"`
 	ExpireDate *time.Time `gorm:"not null;uniquIndex:idx_token;" json:"-"`
 	RememberMe bool       `gorm:"not null;" json:"-" default:"false"`
-}
-
-func (us *UserSession) TableName() string {
-	return utils.GetTableName(datatypes.UserSchema, us)
 }
 
 func (o *UserSession) BeforeCreate(tx *gorm.DB) (err error) {

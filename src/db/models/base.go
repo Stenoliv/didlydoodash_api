@@ -7,9 +7,9 @@ import (
 )
 
 type Base struct {
-	ID        string     `gorm:"not null;primaryKey;size:21;" json:"id"`
-	CreatedAt *time.Time `gorm:"deafult:NOW()" json:"createdAt"`
-	UpdatedAt *time.Time `gorm:"deafult:NOW()" json:"updatedAt"`
+	ID        string     `gorm:"not null;primaryKey;size:21;" json:"id,omitempty"`
+	CreatedAt *time.Time `gorm:"deafult:NOW()" json:"createdAt,omitempty"`
+	UpdatedAt *time.Time `gorm:"deafult:NOW()" json:"updatedAt,omitempty"`
 }
 
 func (b *Base) GenerateID() (err error) {

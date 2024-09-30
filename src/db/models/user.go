@@ -1,26 +1,23 @@
 package models
 
 import (
-	"DidlyDoodash-api/src/db/datatypes"
-	"DidlyDoodash-api/src/utils"
-
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
 var CurrentUser *string
 
+func PublicUserData(db *gorm.DB) *gorm.DB {
+	return db.Select("id", "username")
+}
+
 // User table struct
 type User struct {
 	Base
 	DeletedAt gorm.DeletedAt `gorm:"index" json:"deletedAt,omitempty"`
-	Username  string         `gorm:"size:50;not null:unique;index;" json:"username"`
-	Email     string         `gorm:"size:255;not null;unique;" json:"email"`
+	Username  string         `gorm:"size:50;not null:unique;index;" json:"username,omitempty"`
+	Email     string         `gorm:"size:255;not null;unique;" json:"email,omitempty"`
 	Password  string         `gorm:"size:255;not null;" json:"-"`
-}
-
-func (u *User) TableName() string {
-	return utils.GetTableName(datatypes.UserSchema, u)
 }
 
 func (u *User) SaveUser(tx *gorm.DB) error {

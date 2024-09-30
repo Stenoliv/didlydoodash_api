@@ -1,9 +1,6 @@
 package models
 
 import (
-	"DidlyDoodash-api/src/db/datatypes"
-	"DidlyDoodash-api/src/utils"
-
 	"gorm.io/gorm"
 )
 
@@ -14,10 +11,6 @@ type Organisation struct {
 	Owner     User           `gorm:"not null;" json:"owner"`
 	Name      string         `gorm:"not null;uniqueIndex:idx_o_name_user;" json:"name"`
 	Chats     []ChatRoom     `gorm:"" json:"chatRooms"`
-}
-
-func (o *Organisation) TableName() string {
-	return utils.GetTableName(datatypes.OrganisationSchema, o)
 }
 
 func (o *Organisation) SaveOrganisation(tx *gorm.DB) (err error) {
@@ -37,7 +30,7 @@ func (o *Organisation) BeforeCreate(tx *gorm.DB) (err error) {
 
 func (o *Organisation) AfterFind(tx *gorm.DB) (err error) {
 	if o.Owner.ID == "" {
-		if err := tx.Model(&Organisation{}).Association("Owner").Find(&o.Owner); err != nil {
+		if err := tx.Model(&User{}).Scopes(PublicUserData).Find(&o.Owner, "id = ?", o.OwnerID).Error; err != nil {
 			return err
 		}
 	}

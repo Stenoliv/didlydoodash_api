@@ -5,12 +5,7 @@ import (
 	"DidlyDoodash-api/src/db/models"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
-
-func PublicUserData(db *gorm.DB) *gorm.DB {
-	return db.Select("id", "username").Where("verified = true")
-}
 
 // Function to get all users with pagination enabled
 func GetUsers(c *gin.Context) (PaginationResult[models.User], error) {

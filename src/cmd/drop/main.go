@@ -2,14 +2,14 @@ package main
 
 import (
 	"DidlyDoodash-api/src/db"
-	"DidlyDoodash-api/src/db/datatypes"
-	"strings"
+	"DidlyDoodash-api/src/db/models"
 )
 
 func main() {
 	db.Init()
 
-	db.DropSchema(strings.Split(datatypes.UserSchema, ".")[0])
-	db.DropSchema(strings.Split(datatypes.OrganisationSchema, ".")[0])
-	db.DropSchema(strings.Split(datatypes.ProjectSchema, ".")[0])
+	db.DB.Migrator().DropTable(&models.User{}, &models.UserSession{})
+	db.DB.Migrator().DropTable(&models.Project{}, &models.ProjectMembers{})
+	db.DB.Migrator().DropTable(&models.Organisation{}, &models.OrganisationMember{})
+	db.DB.Migrator().DropTable(&models.ChatRoom{}, &models.ChatMember{}, &models.ChatMessage{})
 }

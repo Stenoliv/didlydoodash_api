@@ -2,6 +2,7 @@ package chat
 
 import (
 	"DidlyDoodash-api/src/db/daos"
+	"DidlyDoodash-api/src/db/models"
 	"DidlyDoodash-api/src/utils"
 	"DidlyDoodash-api/src/ws"
 	"encoding/json"
@@ -19,24 +20,12 @@ func NewChatHandler() *ChatHandler {
 	return &ChatHandler{Hub: hub}
 }
 
-type JoinRoomBody struct {
-	RoomID string `json:"roomId" binding:"required"`
-	UserID string `json:"userId" binding:"required"`
-}
-
 func (h *ChatHandler) JoinRoom(c *gin.Context) {
-	var req JoinRoomBody
-
-	// Bind the incoming request to validate user input
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, utils.InvalidInput)
-		return
-	}
-
+	roomID := c.Param("roomId")
 	// Retrive chat in database and check that user is part of
-	room, err := daos.GetChatWithMessages(req.RoomID, req.UserID)
+	room, err := daos.GetChat(roomID)
 	if err != nil {
-		c.JSON(http.StatusForbidden, "Not in room")
+		c.JSON(http.StatusForbidden, "Not in room"+err.Error())
 		return
 	}
 
@@ -51,8 +40,8 @@ func (h *ChatHandler) JoinRoom(c *gin.Context) {
 	client := &Client{
 		Conn:    conn,
 		Message: make(chan *ws.WSMessage),
-		RoomID:  req.RoomID,
-		UserID:  req.UserID,
+		RoomID:  roomID,
+		UserID:  *models.CurrentUser,
 	}
 
 	h.Hub.Register <- client
@@ -66,7 +55,7 @@ func (h *ChatHandler) JoinRoom(c *gin.Context) {
 
 		client.Message <- &ws.WSMessage{
 			Type:    utils.MessageSend,
-			RoomID:  msg.ChatRoomID,
+			RoomID:  msg.RoomID,
 			Payload: data,
 		}
 	}

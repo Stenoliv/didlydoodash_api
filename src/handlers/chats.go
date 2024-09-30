@@ -12,13 +12,13 @@ import (
 
 func GetChats(c *gin.Context) {
 	orgID := c.Param("id")
-	chats, err := daos.GetChats(orgID, *models.CurrentUser)
+	chats, err := daos.GetChats(orgID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, utils.InvalidInput)
 		return
 	}
 
-	c.JSON(http.StatusOK, chats)
+	c.JSON(http.StatusOK, gin.H{"chats": chats})
 }
 
 type CreateChatInput struct {
@@ -44,14 +44,6 @@ func CreateChat(c *gin.Context) {
 		OrganisationID: orgID,
 		Name:           req.Name,
 	}
-	var members []models.ChatMember
-	for _, member := range req.Members {
-		members = append(members, models.ChatMember{
-			UserID:     member.UserID,
-			ChatRoomID: room.ID,
-		})
-	}
-	room.Members = members
 
 	if err := room.SaveChatRoom(tx); err != nil {
 		tx.Rollback()
@@ -59,6 +51,23 @@ func CreateChat(c *gin.Context) {
 		return
 	}
 
+	var members []models.ChatMember
+	for _, member := range req.Members {
+		roomMebmer := &models.ChatMember{
+			UserID: member.UserID,
+			RoomID: room.ID,
+		}
+
+		if err := roomMebmer.SaveMember(tx); err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, utils.ServerError)
+			return
+		}
+
+		members = append(members, *roomMebmer)
+	}
+	room.Members = members
+
 	tx.Commit()
-	c.JSON(http.StatusCreated, room)
+	c.JSON(http.StatusCreated, gin.H{"chat": room})
 }

@@ -5,6 +5,7 @@ import (
 	"DidlyDoodash-api/src/db"
 	"DidlyDoodash-api/src/handlers"
 	"DidlyDoodash-api/src/handlers/middleware"
+	"DidlyDoodash-api/src/ws/chat"
 	"fmt"
 	"time"
 
@@ -51,6 +52,8 @@ func main() {
 	// Organisations endpoints
 	organisation := r.Group("/organisations", middleware.AuthMiddleware())
 	{
+		chatHandler := chat.NewChatHandler()
+
 		// Basic endpoints
 		organisation.GET("", handlers.GetOrganisations)          // Get organisation user is part of
 		organisation.POST("", handlers.CreateOrganisation)       // Create a new organisation
@@ -65,6 +68,7 @@ func main() {
 
 		organisation.GET("/:id/chats", handlers.GetChats)
 		organisation.POST("/:id/chats", handlers.CreateChat)
+		organisation.GET("/:id/chats/:roomId", chatHandler.JoinRoom)
 	}
 
 	// Projects endpoints
