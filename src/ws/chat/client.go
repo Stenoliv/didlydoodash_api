@@ -1,6 +1,8 @@
 package chat
 
 import (
+	"DidlyDoodash-api/src/db"
+	"DidlyDoodash-api/src/db/models"
 	"DidlyDoodash-api/src/utils"
 	"DidlyDoodash-api/src/ws"
 	"encoding/json"
@@ -62,6 +64,59 @@ func (c *Client) HandleMessage(msg []byte, hub *Hub) {
 	 */
 	switch input.Type {
 	case utils.MessageSend:
+
+		// Try to unmarshal the ws message payload to a valid message struct
+		var message MessageStruct
+		if err := json.Unmarshal(input.Payload, &message); err != nil {
+			// Failed to parse input payload
+			Err := &ws.WSError{
+				Message: "Invalid message input",
+			}
+
+			c.Message <- &ws.WSMessage{
+				Type:    utils.MessageError,
+				RoomID:  input.RoomID,
+				Payload: Err.ToJSON(),
+			}
+			return
+		}
+
+		// Start a transaction and save message to database
+		tx := db.DB.Begin()
+		dbMessage := &models.ChatMessage{
+			RoomID:  input.RoomID,
+			UserID:  message.ID,
+			Message: message.Message,
+		}
+		if err := dbMessage.SaveMessage(tx); err != nil {
+			// Failed to save message to database
+			Err := &ws.WSError{
+				Message: "Failed to save message",
+			}
+
+			c.Message <- &ws.WSMessage{
+				Type:    utils.MessageError,
+				RoomID:  input.RoomID,
+				Payload: Err.ToJSON(),
+			}
+
+			tx.Rollback()
+			return
+		}
+
+		// Accept changes to database
+		tx.Commit()
+
+		// Create a response WSMessage
+		response := ws.WSMessage{
+			Type:    utils.MessageSend,
+			RoomID:  input.RoomID,
+			Payload: dbMessage.ToJSON(),
+		}
+
+		// Broadcast message to the clients in room
+		hub.Broadcast <- &response
+	case utils.MessageTyping:
 		hub.Broadcast <- &input
 	default:
 		hub.Broadcast <- &input

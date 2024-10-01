@@ -1,7 +1,11 @@
 package chat
 
 import (
+	"DidlyDoodash-api/src/db"
+	"DidlyDoodash-api/src/db/models"
+	"DidlyDoodash-api/src/utils"
 	"DidlyDoodash-api/src/ws"
+	"encoding/json"
 	"sync"
 )
 
@@ -57,6 +61,26 @@ func (h *Hub) run() {
 			room.mu.Unlock()
 
 			h.mu.Unlock()
+
+			// Get messages from the database and send if found
+			var messages []models.ChatMessage
+			if err := db.DB.Model(&models.ChatMessage{}).Where("room_id = ?", client.RoomID).Find(&messages).Error; err != nil {
+				return
+			}
+
+			// Turn messages into json
+			data, err := json.Marshal(messages)
+			if err != nil {
+				return
+			}
+
+			// Create response and send to client
+			wsMessage := &ws.WSMessage{
+				Type:    utils.SendMessages,
+				RoomID:  client.RoomID,
+				Payload: data,
+			}
+			client.Message <- wsMessage
 		case client := <-h.Unregister:
 			h.mu.Lock()
 			if existingClient, ok := h.Clients[client.UserID]; ok {

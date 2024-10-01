@@ -23,3 +23,15 @@ type WSMessage struct {
 	RoomID  string            `json:"roomId"`
 	Payload json.RawMessage   `json:"payload"`
 }
+
+type WSError struct {
+	Message string `json:"message"`
+}
+
+func (w *WSError) ToJSON() []byte {
+	data, err := json.Marshal(w)
+	if err != nil {
+		return nil
+	}
+	return data
+}

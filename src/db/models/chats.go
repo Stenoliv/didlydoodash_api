@@ -1,6 +1,8 @@
 package models
 
 import (
+	"encoding/json"
+
 	"gorm.io/gorm"
 )
 
@@ -37,9 +39,9 @@ func (o *ChatRoom) AfterFind(tx *gorm.DB) error {
 // Member of chats
 type ChatMember struct {
 	Base
-	RoomID string   `gorm:"size:21;uniqueIndex:idx_chat_member;not null;" json:"-"`
+	RoomID string   `gorm:"size:21;not null;" json:"-"`
 	Room   ChatRoom `gorm:"" json:"-"`
-	UserID string   `gorm:"size:21;uniqueIndex:idx_chat_member;not null;" json:"-"`
+	UserID string   `gorm:"size:21;not null;" json:"-"`
 	User   User     `gorm:"" json:"member"`
 }
 
@@ -66,11 +68,11 @@ func (o *ChatMember) AfterFind(tx *gorm.DB) (err error) {
 // Chat message
 type ChatMessage struct {
 	Base
-	RoomID  string   `gorm:"size:21;uniqueIndex:idx_room_message;not null;" json:"-"`
+	RoomID  string   `gorm:"size:21;not null;" json:"-"`
 	Room    ChatRoom `gorm:"" json:"-"`
-	UserID  string   `gorm:"size:21;uniqueIndex:idx_room_message;not null;" json:"userId"`
+	UserID  string   `gorm:"size:21;not null;" json:"userId"`
 	User    User     `gorm:"" json:"-"`
-	Message string   `gorm:"uniqueIndex:idx_room_message;not null;" json:"message"`
+	Message string   `gorm:"not null;" json:"message"`
 }
 
 func (o *ChatMessage) BeforeCreate(tx *gorm.DB) (err error) {
@@ -78,4 +80,16 @@ func (o *ChatMessage) BeforeCreate(tx *gorm.DB) (err error) {
 		return err
 	}
 	return nil
+}
+
+func (o *ChatMessage) SaveMessage(tx *gorm.DB) error {
+	return tx.Create(&o).Error
+}
+
+func (o *ChatMessage) ToJSON() []byte {
+	data, err := json.Marshal(o)
+	if err != nil {
+		return nil
+	}
+	return data
 }
