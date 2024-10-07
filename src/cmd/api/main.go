@@ -62,12 +62,14 @@ func main() {
 
 		// Organisation members
 		organisation.GET("/:id/members", handlers.GetOrganisationMembers)              // Get organisation members
-		organisation.POST("/:id/members", handlers.AddOrganisationMember)              // Add member to organisation
+		organisation.POST("/:id/members/:userID", handlers.AddOrganisationMember)      // Add member to organisation
 		organisation.PATCH("/:id/members/:userID", handlers.UpdateOrganisationMember)  // Update role etc... of organisation member
 		organisation.DELETE("/:id/members/:userID", handlers.DeleteOrganisationMember) // Remove organisation member
 
 		organisation.GET("/:id/chats", handlers.GetChats)
 		organisation.POST("/:id/chats", handlers.CreateChat)
+		organisation.PUT("/:id/chats/:chatId/member/:userId", handlers.AddUserToChat)
+		organisation.DELETE("/:id/chats/:chatId/member/:userId", handlers.RemoveUserToChat)
 		organisation.GET("/:id/chats/:roomId", chatHandler.JoinRoom)
 	}
 

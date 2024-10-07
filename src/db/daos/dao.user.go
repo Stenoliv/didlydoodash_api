@@ -12,7 +12,7 @@ func GetUsers(c *gin.Context) (PaginationResult[models.User], error) {
 	var users []models.User
 
 	// Use Paginate to fetch users and pagination metadata
-	if err := db.DB.Scopes(Paginate[models.User](c)).Not("id = ?", models.CurrentUser).Find(&users).Error; err != nil {
+	if err := db.DB.Model(&models.User{}).Scopes(models.PublicUserData, Paginate[models.User](c)).Where("id != ?", models.CurrentUser).Scan(&users).Error; err != nil {
 		return PaginationResult[models.User]{}, err
 	}
 

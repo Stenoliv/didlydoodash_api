@@ -56,6 +56,13 @@ func (o *ChatMember) BeforeCreate(tx *gorm.DB) error {
 	return nil
 }
 
+func (o *ChatMember) AfterCreate(tx *gorm.DB) error {
+	if err := tx.Model(&User{}).Where("id = ?", o.UserID).Find(&o.User).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 func (o *ChatMember) AfterFind(tx *gorm.DB) (err error) {
 	if o.User.ID == "" {
 		if err = tx.Model(&User{}).Scopes(PublicUserData).Where("id = ?", o.UserID).Find(&o.User).Error; err != nil {

@@ -91,11 +91,35 @@ func DeleteOrganisation(c *gin.Context) {
  * Member related enpoints
  */
 func GetOrganisationMembers(c *gin.Context) {
-	c.JSON(http.StatusOK, nil)
+	id := c.Param("id")
+	members, err := daos.GetMembers(id)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.InvalidInput)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"members": members, "organisationId": id})
 }
 
 func AddOrganisationMember(c *gin.Context) {
-	c.JSON(http.StatusOK, nil)
+	id := c.Param("id")
+	userId := c.Param("userID")
+	tx := db.DB.Begin()
+
+	member := &models.OrganisationMember{
+		OrganisationID: id,
+		UserID:         userId,
+		Role:           datatypes.HelpDeskTechnician,
+	}
+
+	if err := member.SaveMember(tx); err != nil {
+		tx.Rollback()
+		c.AbortWithStatusJSON(http.StatusInternalServerError, utils.ServerError)
+		return
+	}
+
+	tx.Commit()
+	c.JSON(http.StatusOK, gin.H{"member": member})
 }
 
 func UpdateOrganisationMember(c *gin.Context) {

@@ -71,3 +71,69 @@ func CreateChat(c *gin.Context) {
 	tx.Commit()
 	c.JSON(http.StatusCreated, gin.H{"chat": room})
 }
+
+func AddUserToChat(c *gin.Context) {
+	id := c.Param("id")
+	chatId := c.Param("chatId")
+	userId := c.Param("userId")
+	tx := db.DB.Begin()
+
+	member, err := daos.GetMember(id, userId)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.InvalidInput)
+		return
+	}
+
+	if member == nil {
+		tx.Rollback()
+		c.AbortWithStatusJSON(http.StatusInternalServerError, utils.ServerError)
+	}
+
+	chatMember := &models.ChatMember{
+		RoomID: chatId,
+		UserID: userId,
+	}
+
+	if err := chatMember.SaveMember(tx); err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, utils.ServerError)
+		return
+	}
+
+	tx.Commit()
+	c.JSON(http.StatusOK, gin.H{"member": chatMember})
+}
+
+func RemoveUserToChat(c *gin.Context) {
+	id := c.Param("id")
+	chatId := c.Param("chatId")
+	userId := c.Param("userId")
+
+	if userId == *models.CurrentUser {
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.InvalidInput)
+		return
+	}
+
+	member, err := daos.GetMember(id, userId)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.InvalidInput)
+		return
+	}
+
+	if member == nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, utils.ServerError)
+		return
+	}
+
+	chatMember, err := daos.GetChatMember(chatId, userId)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, utils.ServerError)
+		return
+	}
+
+	if err := db.DB.Delete(&chatMember).Error; err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, utils.ServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"member": chatMember})
+}

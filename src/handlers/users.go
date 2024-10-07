@@ -3,6 +3,7 @@ package handlers
 import (
 	"DidlyDoodash-api/src/db/daos"
 	"DidlyDoodash-api/src/db/models"
+	"DidlyDoodash-api/src/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -12,7 +13,7 @@ import (
 func GetAllUsers(c *gin.Context) {
 	result, err := daos.GetUsers(c)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, utils.ServerError)
 		return
 	}
 	c.JSON(http.StatusOK, result)
@@ -26,12 +27,12 @@ func GetUser(c *gin.Context) {
 	}
 	usr, err := daos.GetUser(id)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, utils.ServerError)
 		return
 	}
 
 	if (usr == models.User{}) { // Zero-value check
-		c.JSON(http.StatusNotFound, gin.H{"message": "User not found", "errorcode": "404"})
+		c.JSON(http.StatusNotFound, utils.UserNotFound)
 		return
 	}
 

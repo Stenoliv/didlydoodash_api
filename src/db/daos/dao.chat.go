@@ -31,3 +31,11 @@ func GetChat(roomID string) (*models.ChatRoom, error) {
 
 	return &room, nil
 }
+
+func GetChatMember(roomID, userID string) (*models.ChatMember, error) {
+	var member models.ChatMember
+	if err := db.DB.Model(&models.ChatMember{}).Where("room_id = ?", roomID).Where("user_id = ?", userID).Find(&member).Error; err != nil {
+		return nil, err
+	}
+	return &member, nil
+}
