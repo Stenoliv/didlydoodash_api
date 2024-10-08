@@ -23,12 +23,12 @@ func GetAllOrgs() (orgs []models.Organisation, err error) {
 	return orgs, nil
 }
 
-func GetOrg(id string) (models.Organisation, error) {
+func GetOrg(id string) (*models.Organisation, error) {
 	var org models.Organisation
-	if err := db.DB.Model(&models.Organisation{}).Where("id = ?", id).Find(&org).Error; err != nil {
-		return models.Organisation{}, err
+	if err := db.DB.Model(&models.Organisation{}).Where("id = ?", id).First(&org).Error; err != nil {
+		return nil, err
 	}
-	return org, nil
+	return &org, nil
 }
 
 // Get organistaion members
@@ -41,7 +41,7 @@ func GetMembers(id string) (members []models.OrganisationMember, err error) {
 
 func GetMember(id, userId string) (*models.OrganisationMember, error) {
 	var member models.OrganisationMember
-	if err := db.DB.Model(&models.OrganisationMember{}).Where("organisation_id = ?", id).Where("user_id = ?", userId).Find(&member).Error; err != nil {
+	if err := db.DB.Model(&models.OrganisationMember{}).Where("organisation_id = ?", id).Where("user_id = ?", userId).First(&member).Error; err != nil {
 		return nil, err
 	}
 	return &member, nil

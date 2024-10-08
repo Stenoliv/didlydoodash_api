@@ -66,11 +66,15 @@ func main() {
 		organisation.PATCH("/:id/members/:userID", handlers.UpdateOrganisationMember)  // Update role etc... of organisation member
 		organisation.DELETE("/:id/members/:userID", handlers.DeleteOrganisationMember) // Remove organisation member
 
+		// Organisation chats
 		organisation.GET("/:id/chats", handlers.GetChats)
 		organisation.POST("/:id/chats", handlers.CreateChat)
 		organisation.PUT("/:id/chats/:chatId/member/:userId", handlers.AddUserToChat)
-		organisation.DELETE("/:id/chats/:chatId/member/:userId", handlers.RemoveUserToChat)
-		organisation.GET("/:id/chats/:roomId", chatHandler.JoinRoom)
+		organisation.DELETE("/:id/chats/:chatId/member/:userId", handlers.RemoveUserFromChat)
+		organisation.GET("/:id/chats/:chatId", chatHandler.JoinRoom)
+
+		// Organisation chats notifcations
+		organisation.GET("/notifications/:chatId", chatHandler.NotificationHandler)
 	}
 
 	// Projects endpoints

@@ -6,6 +6,7 @@ import (
 	"DidlyDoodash-api/src/db/datatypes"
 	"DidlyDoodash-api/src/db/models"
 	"DidlyDoodash-api/src/utils"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -191,10 +192,95 @@ func AddOrganisationMember(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"member": member})
 }
 
+type updateOrgMemberInput struct {
+	Role *datatypes.OrganisationRole `json:"role"`
+}
+
 func UpdateOrganisationMember(c *gin.Context) {
-	c.JSON(http.StatusOK, nil)
+	var input updateOrgMemberInput
+	if err := c.ShouldBindBodyWithJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, utils.InvalidInput)
+		return
+	}
+
+	id := c.Param("id")
+	userID := c.Param("userID")
+
+	org, err := daos.GetOrg(id)
+	if err != nil || org == nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.OrgNotFound)
+		return
+	}
+
+	if org.Owner.UserID != *models.CurrentUser {
+		c.AbortWithStatusJSON(http.StatusForbidden, utils.NotEnoughAuthority)
+		return
+	}
+
+	member, err := daos.GetMember(id, userID)
+	if err != nil || member == nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.MemberNotFound)
+		return
+	}
+
+	tx := db.DB.Begin()
+	updates := make(map[string]interface{})
+
+	if input.Role != nil {
+		updates["role"] = &input.Role
+	}
+
+	if len(updates) > 0 {
+		if err := tx.Model(&member).Where("organisation_id = ? AND user_id = ?", member.OrganisationID, member.UserID).Updates(updates).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusBadRequest, utils.InvalidInput)
+			return
+		}
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		c.JSON(http.StatusInternalServerError, utils.ServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"updated": member})
 }
 
 func DeleteOrganisationMember(c *gin.Context) {
-	c.JSON(http.StatusOK, nil)
+	id := c.Param("id")
+	userId := c.Param("userID")
+
+	// Check for organisation
+	org, err := daos.GetOrg(id)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.OrgNotFound)
+		return
+	}
+
+	// Check that current user is owner of organisation
+	if org.Owner.User.ID != *models.CurrentUser {
+		fmt.Println(org.Owner)
+		c.AbortWithStatusJSON(http.StatusForbidden, utils.NotEnoughAuthority)
+		return
+	}
+
+	// Check for member in organisation
+	member, err := daos.GetMember(id, userId)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.MemberNotFound)
+		return
+	}
+
+	if member == nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.MemberNotFound)
+		return
+	}
+
+	// Try to delete member from organisation
+	if err := db.DB.Delete(&member, "organisation_id = ? AND user_id = ?", member.OrganisationID, member.UserID).Error; err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, utils.ServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"deleted": member})
 }

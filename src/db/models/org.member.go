@@ -8,7 +8,7 @@ import (
 
 // Organisation member
 type OrganisationMember struct {
-	OrganisationID string                     `gorm:"not null;uniqueIndex:idx_o_member;size:21;" json:"-"`
+	OrganisationID string                     `gorm:"not null;uniqueIndex:idx_o_member;size:21;" json:"organisationId"`
 	Organisation   *Organisation              `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
 	Role           datatypes.OrganisationRole `gorm:"type:organisation_role" json:"role"`
 	UserID         string                     `gorm:"not null;uniqueIndex:idx_o_member;size:21;" json:"-"`

@@ -103,7 +103,7 @@ func AddUserToChat(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"member": chatMember})
 }
 
-func RemoveUserToChat(c *gin.Context) {
+func RemoveUserFromChat(c *gin.Context) {
 	id := c.Param("id")
 	chatId := c.Param("chatId")
 	userId := c.Param("userId")

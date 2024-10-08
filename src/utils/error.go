@@ -32,13 +32,16 @@ const (
 	// Authentication error codes
 	CodeUserNotFound        = 200
 	CodeAuthenticationError = 201
+	CodeAuthorityError      = 203
 	CodeTokenError          = 202
 	CodeInvalidToken        = 203
 	CodeNotAuthenticated    = 204
 	CodeNotVerified         = 205
 
 	// Organisation errors: 300
-	CodeOrgCreate = 300
+	CodeOrgCreate      = 300
+	CodeOrgNotFound    = 304
+	CodeMemberNotFound = 320
 
 	CodeChatNotFound = 350
 
@@ -58,11 +61,14 @@ var (
 	AuthenticationError = NewEndpointError(CodeAuthenticationError, "Failed to authenticate")
 	InvalidToken        = NewEndpointError(CodeInvalidToken, "JWT not valid")
 	NotAuthenticated    = NewEndpointError(CodeNotAuthenticated, "You are not authenticated")
+	NotEnoughAuthority  = NewEndpointError(CodeAuthorityError, "You are forbidden to use this")
 )
 
 // Organisation errors
 var (
 	FailedToCreateOrg = NewEndpointError(CodeOrgCreate, "Failed to create organisation try again later")
+	OrgNotFound       = NewEndpointError(CodeOrgNotFound, "Organisation does not exist")
+	MemberNotFound    = NewEndpointError(CodeMemberNotFound, "Member was not found in organisation")
 
 	ChatNotFound = NewEndpointError(CodeChatNotFound, "Chat not found")
 )
