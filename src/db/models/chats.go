@@ -10,7 +10,7 @@ import (
 type ChatRoom struct {
 	Base
 	OrganisationID string        `gorm:"size:21;" json:"-"`
-	Organisation   Organisation  `gorm:"" json:"-"`
+	Organisation   Organisation  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
 	Name           string        `gorm:"size:255;" json:"name"`
 	Members        []ChatMember  `gorm:"-" json:"members"`
 	Messages       []ChatMessage `gorm:"-" json:"messages"`
@@ -40,7 +40,7 @@ func (o *ChatRoom) AfterFind(tx *gorm.DB) error {
 type ChatMember struct {
 	Base
 	RoomID string   `gorm:"size:21;not null;" json:"-"`
-	Room   ChatRoom `gorm:"" json:"-"`
+	Room   ChatRoom `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
 	UserID string   `gorm:"size:21;not null;" json:"-"`
 	User   User     `gorm:"" json:"member"`
 }
@@ -76,9 +76,9 @@ func (o *ChatMember) AfterFind(tx *gorm.DB) (err error) {
 type ChatMessage struct {
 	Base
 	RoomID  string   `gorm:"size:21;not null;" json:"-"`
-	Room    ChatRoom `gorm:"" json:"-"`
+	Room    ChatRoom `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
 	UserID  string   `gorm:"size:21;not null;" json:"userId"`
-	User    User     `gorm:"" json:"-"`
+	User    User     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
 	Message string   `gorm:"not null;" json:"message"`
 }
 

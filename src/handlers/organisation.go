@@ -27,8 +27,8 @@ type OrganisationInput struct {
 }
 
 type OrganisationMemberInput struct {
-	ID   string                     `json:"userId"`
-	Role datatypes.OrganisationRole `json:"role"`
+	User models.User `json:"user"`
+	Role string      `json:"role"`
 }
 
 // Create organisation function
@@ -43,8 +43,7 @@ func CreateOrganisation(c *gin.Context) {
 
 	// Create Organisation object
 	org := &models.Organisation{
-		Name:    input.Name,
-		OwnerID: *models.CurrentUser,
+		Name: input.Name,
 	}
 
 	// Save organisation object to database
@@ -54,12 +53,26 @@ func CreateOrganisation(c *gin.Context) {
 		return
 	}
 
+	var owner *models.OrganisationMember
+
 	// Create organisation members
 	for _, member := range input.Members {
+
 		organisationMember := &models.OrganisationMember{
 			OrganisationID: org.ID,
-			UserID:         member.ID,
-			Role:           member.Role,
+			Organisation:   org,
+			UserID:         member.User.ID,
+			Role:           datatypes.ToOrganisationRole(member.Role),
+		}
+
+		if datatypes.CEO == datatypes.ToOrganisationRole(member.Role) {
+			if owner == nil {
+				owner = organisationMember
+			} else {
+				tx.Rollback()
+				c.JSON(http.StatusBadRequest, utils.InvalidInput)
+				return
+			}
 		}
 
 		if err := organisationMember.SaveMember(tx); err != nil {
@@ -67,7 +80,12 @@ func CreateOrganisation(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, utils.FailedToCreateOrg)
 			return
 		}
+
+		org.Members = append(org.Members, *organisationMember)
 	}
+
+	// Set owner of organisation
+	org.Owner = *owner
 
 	// Try to commit to database
 	if err := tx.Commit().Error; err != nil {
@@ -83,8 +101,58 @@ func UpdateOrganisation(c *gin.Context) {
 	c.JSON(http.StatusOK, nil)
 }
 
+type deleteOrganisationInput struct {
+	Name     string `json:"orgName" binding:"required"`
+	Password string `json:"password" binding:"required"`
+}
+
 func DeleteOrganisation(c *gin.Context) {
-	c.JSON(http.StatusOK, nil)
+	id := c.Param("id")
+	var input deleteOrganisationInput
+	if err := c.ShouldBindBodyWithJSON(&input); err != nil {
+		c.JSON(http.StatusBadRequest, utils.InvalidInput)
+		return
+	}
+
+	// Check that organisation exists
+	org, err := daos.GetOrg(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, utils.InvalidInput)
+		return
+	}
+
+	// Get user from JWT
+	user, err := daos.GetUser(*models.CurrentUser)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, utils.InvalidInput)
+		return
+	}
+
+	// Check if user is owner
+	if org.Owner.User.ID != user.ID {
+		c.JSON(http.StatusBadRequest, utils.InvalidInput)
+		return
+	}
+
+	// Check user password
+	if !user.Validatepassword(input.Password) {
+		c.JSON(http.StatusBadRequest, utils.InvalidInput)
+		return
+	}
+
+	// Check that input name matches organisation name
+	if org.Name != input.Name {
+		c.JSON(http.StatusBadRequest, utils.InvalidInput)
+		return
+	}
+
+	// Try to delete organisation from database
+	if err := db.DB.Delete(&org).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, utils.ServerError)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"deleted": org})
 }
 
 /**
@@ -104,12 +172,13 @@ func GetOrganisationMembers(c *gin.Context) {
 func AddOrganisationMember(c *gin.Context) {
 	id := c.Param("id")
 	userId := c.Param("userID")
+	role := datatypes.ToOrganisationRole(c.Query("role"))
 	tx := db.DB.Begin()
 
 	member := &models.OrganisationMember{
 		OrganisationID: id,
 		UserID:         userId,
-		Role:           datatypes.HelpDeskTechnician,
+		Role:           role,
 	}
 
 	if err := member.SaveMember(tx); err != nil {

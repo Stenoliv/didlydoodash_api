@@ -23,10 +23,10 @@ func ConnectToDatabase() (*gorm.DB, error) {
 	DB_SSL := os.Getenv("DB_SSL")
 	DB_TIMEZONE := os.Getenv("DB_TIMEZONE")
 
-	DSN := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%v sslmode=%s timezone=%s", DB_HOST, DB_USER, DB_PASSWORD,DB_NAME,DB_PORT,DB_SSL,DB_TIMEZONE)
+	DSN := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%v sslmode=%s timezone=%s", DB_HOST, DB_USER, DB_PASSWORD, DB_NAME, DB_PORT, DB_SSL, DB_TIMEZONE)
 
 	DB, err := gorm.Open(postgres.New(postgres.Config{
-		DSN: DSN,
+		DSN:                  DSN,
 		PreferSimpleProtocol: true,
 	}), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
@@ -51,23 +51,26 @@ func Init() error {
 	return nil
 }
 
-func CheckForSchema(schema string) bool {
-	query := fmt.Sprintf("CREATE SCHEMA IF NOT EXISTS %s", schema)
-	if err := DB.Exec(query).Error; err != nil {
-		fmt.Printf("Error creating schema %s: %v\n", schema, err)
+func DropType(typestr string) bool {
+	// Check if type exists
+	var count int64
+	query := fmt.Sprintf("SELECT COUNT(*) FROM pg_type WHERE typname = '%s';", typestr)
+	if err := DB.Raw(query).Count(&count).Error; err != nil {
+		fmt.Printf("Error checking type %s existence: %v\n", typestr, err)
 		return false
 	}
-	fmt.Printf("Schema %s created successfully\n", schema)
-	return true
-}
+	if count == 0 {
+		fmt.Printf("Type %s does not exist\n", typestr)
+		return true
+	}
 
-func DropSchema(schema string) bool {
-	query := fmt.Sprintf("DROP SCHEMA IF EXISTS %s CASCADE", schema)
+	// Drop type if it exists
+	query = fmt.Sprintf("DROP TYPE %s;", typestr)
 	if err := DB.Exec(query).Error; err != nil {
-		fmt.Printf("Error dropping schema %s: %v\n", schema, err)
+		fmt.Printf("Error dropping type %s: %v\n", typestr, err)
 		return false
 	}
-	fmt.Printf("Schema %s dropped successfully\n", schema)
+	fmt.Printf("Type %s dropped successfully\n", typestr)
 	return true
 }
 

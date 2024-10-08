@@ -10,9 +10,9 @@ import (
 type Project struct {
 	Base
 	Name           string           `gorm:"size:255;" json:"name"`
-	Organisation   Organisation     `gorm:"" json:"organisation"`
-	OrganisationID string           `gorm:"size:21;" json:"-"`
-	Members        []ProjectMembers `gorm:"" json:"members"`
+	OrganisationID string           `gorm:"not null;size:21;" json:"-"`
+	Organisation   Organisation     `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"organisation"`
+	Members        []ProjectMembers `gorm:"-" json:"members"`
 }
 
 func (o *Project) BeforeCreate(tx *gorm.DB) (err error) {

@@ -15,16 +15,25 @@ func OrganisationListData(db *gorm.DB) *gorm.DB {
 // Get all organisations
 func GetAllOrgs() (orgs []models.Organisation, err error) {
 	if err := db.DB.Model(&models.Organisation{}).
-		Where("owner_id = ? OR id IN (SELECT organisation_id FROM organisation_members WHERE user_id = ?)", models.CurrentUser, models.CurrentUser).
+		Joins("JOIN organisation_members ON organisation_members.organisation_id = organisations.id").
+		Where("organisation_members.user_id = ?", models.CurrentUser).
 		Find(&orgs).Error; err != nil {
 		return nil, err
 	}
 	return orgs, nil
 }
 
+func GetOrg(id string) (models.Organisation, error) {
+	var org models.Organisation
+	if err := db.DB.Model(&models.Organisation{}).Where("id = ?", id).Find(&org).Error; err != nil {
+		return models.Organisation{}, err
+	}
+	return org, nil
+}
+
 // Get organistaion members
 func GetMembers(id string) (members []models.OrganisationMember, err error) {
-	if err = db.DB.Model(&models.OrganisationMember{}).Where("organisation_id = ?", id).Where("user_id != ?", models.CurrentUser).Find(&members).Error; err != nil {
+	if err = db.DB.Model(&models.OrganisationMember{}).Where("organisation_id = ?", id).Find(&members).Error; err != nil {
 		return nil, err
 	}
 	return members, nil

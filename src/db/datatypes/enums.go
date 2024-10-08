@@ -12,54 +12,32 @@ const (
 	CEO OrganisationRole = "CEO"
 
 	// Management Roles
-	GeneralManager   OrganisationRole = "General Manager"
-	ProjectManager   OrganisationRole = "Project Manager"
-	SalesManager     OrganisationRole = "Sales Manager"
-	MarketingManager OrganisationRole = "Marketing Manager"
-	HRManager        OrganisationRole = "HR Manager"
-	ITManager        OrganisationRole = "IT Manager"
+	ProjectManager OrganisationRole = "Project Manager"
+	HRManager      OrganisationRole = "HR Manager"
+	ITManager      OrganisationRole = "IT Manager"
 
 	// Technical Roles
-	SoftwareEngineer    OrganisationRole = "Software Engineer"
-	ITSupportSpecialist OrganisationRole = "IT Support Specialist"
-
-	// Marketing & Sales Roles
-	AccountManager     OrganisationRole = "Account Manager"
-	SocialMediaManager OrganisationRole = "Social Media Manager"
-
-	// Finance & Accounting Roles
-	Accountant OrganisationRole = "Accountant"
+	SeniorSoftwareEngineer OrganisationRole = "Senior Software Engineer"
+	JuniorSoftwareEngineer OrganisationRole = "Junior Software Engineer"
+	ITSupport              OrganisationRole = "IT Support"
 
 	// Human Resources & Administration Roles
-	Recruiter    OrganisationRole = "Recruiter"
-	HRGeneralist OrganisationRole = "HR Generalist"
+	Recruiter OrganisationRole = "Recruiter"
 
-	// Operations & Logistics Roles
-	WarehouseManager     OrganisationRole = "Warehouse Manager"
-	LogisticsCoordinator OrganisationRole = "Logistics Coordinator"
-
-	// Customer Support Roles
-	HelpDeskTechnician OrganisationRole = "Help Desk Technician"
+	// Role not specified
+	NotSpecified OrganisationRole = "Not specified"
 )
 
 var OrganisationRoles = []OrganisationRole{
 	CEO,
-	GeneralManager,
 	ProjectManager,
-	SalesManager,
-	MarketingManager,
-	HRManager,
 	ITManager,
-	SoftwareEngineer,
-	ITSupportSpecialist,
-	AccountManager,
-	SocialMediaManager,
-	Accountant,
+	SeniorSoftwareEngineer,
+	JuniorSoftwareEngineer,
+	ITSupport,
+	HRManager,
 	Recruiter,
-	HRGeneralist,
-	WarehouseManager,
-	LogisticsCoordinator,
-	HelpDeskTechnician,
+	NotSpecified,
 }
 
 func GetOrganisationRolesEnum(roles []OrganisationRole) string {
@@ -68,4 +46,24 @@ func GetOrganisationRolesEnum(roles []OrganisationRole) string {
 		roleStrings = append(roleStrings, fmt.Sprintf("'%s'", role))
 	}
 	return strings.Join(roleStrings, ", ")
+}
+
+// IsValidOrganisationRole checks if a string is a valid OrganisationRole
+func IsValidOrganisationRole(role string) bool {
+	for _, validRole := range OrganisationRoles {
+		if strings.EqualFold(string(validRole), role) {
+			return true
+		}
+	}
+	return false
+}
+
+// ToOrganisationRole converts a string to OrganisationRole, defaults to NotSpecified if invalid
+func ToOrganisationRole(role string) OrganisationRole {
+	for _, validRole := range OrganisationRoles {
+		if strings.EqualFold(string(validRole), role) {
+			return validRole
+		}
+	}
+	return NotSpecified
 }
