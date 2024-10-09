@@ -23,6 +23,7 @@ func main() {
 	db.DB.AutoMigrate(&models.ChatRoom{})
 	db.DB.AutoMigrate(&models.ChatMember{})
 	db.DB.AutoMigrate(&models.ChatMessage{})
+	db.DB.AutoMigrate(&models.ChatMessageReadStatus{})
 
 	// Check all tables for projects
 	db.DB.AutoMigrate(&models.Project{})

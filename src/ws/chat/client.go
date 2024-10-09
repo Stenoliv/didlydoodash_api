@@ -35,9 +35,9 @@ func (c *Client) writeMessage() {
 	}
 }
 
-func (c *Client) readMessage(hub *Hub) {
+func (c *Client) readMessage(handler *ChatHandler) {
 	defer func() {
-		hub.Unregister <- c
+		handler.Hub.Unregister <- c
 		c.Conn.Close()
 	}()
 
@@ -49,11 +49,11 @@ func (c *Client) readMessage(hub *Hub) {
 			}
 			break
 		}
-		go c.HandleMessage(msg, hub)
+		go c.HandleMessage(msg, handler)
 	}
 }
 
-func (c *Client) HandleMessage(msg []byte, hub *Hub) {
+func (c *Client) HandleMessage(msg []byte, handler *ChatHandler) {
 	var input ws.WSMessage
 	if err := json.Unmarshal(msg, &input); err != nil {
 		log.Println("Failed to unmarshal JSON:", err)
@@ -105,7 +105,10 @@ func (c *Client) HandleMessage(msg []byte, hub *Hub) {
 		}
 
 		// Accept changes to database
-		tx.Commit()
+		if err := tx.Commit().Error; err != nil {
+			tx.Rollback()
+			return
+		}
 
 		// Create a response WSMessage
 		response := ws.WSMessage{
@@ -115,10 +118,11 @@ func (c *Client) HandleMessage(msg []byte, hub *Hub) {
 		}
 
 		// Broadcast message to the clients in room
-		hub.Broadcast <- &response
+		handler.Hub.Broadcast <- &response
+		handler.NotificationHub.NewNotification(c.RoomID, "Message", dbMessage.ToJSON())
 	case utils.MessageTyping:
-		hub.Broadcast <- &input
+		handler.Hub.Broadcast <- &input
 	default:
-		hub.Broadcast <- &input
+		handler.Hub.Broadcast <- &input
 	}
 }
