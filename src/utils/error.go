@@ -43,7 +43,11 @@ const (
 	CodeOrgNotFound    = 304
 	CodeMemberNotFound = 320
 
-	CodeChatNotFound = 350
+	CodeChatNotFound       = 350
+	CodeChatMemberNotFound = 351
+
+	// Websocket errors
+	CodeWebsocketFailed = 400
 
 	// Server error codes
 	CodeServerError   = 500
@@ -70,7 +74,13 @@ var (
 	OrgNotFound       = NewEndpointError(CodeOrgNotFound, "Organisation does not exist")
 	MemberNotFound    = NewEndpointError(CodeMemberNotFound, "Member was not found in organisation")
 
-	ChatNotFound = NewEndpointError(CodeChatNotFound, "Chat not found")
+	ChatNotFound       = NewEndpointError(CodeChatNotFound, "Chat not found")
+	ChatMemberNotFound = NewEndpointError(CodeChatMemberNotFound, "Not part of chat")
+)
+
+// WebSocket errors
+var (
+	WebSocketFailed = NewEndpointError(CodeWebsocketFailed, "Failed to connect to websocket")
 )
 
 // Server errors

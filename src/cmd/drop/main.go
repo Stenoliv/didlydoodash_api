@@ -11,7 +11,7 @@ func main() {
 	db.DB.Migrator().DropTable(&models.User{}, &models.UserSession{})
 	db.DB.Migrator().DropTable(&models.Project{}, &models.ProjectMembers{})
 	db.DB.Migrator().DropTable(&models.Organisation{}, &models.OrganisationMember{})
-	db.DB.Migrator().DropTable(&models.ChatRoom{}, &models.ChatMember{}, &models.ChatMessage{}, &models.ChatMessageReadStatus{})
+	db.DB.Migrator().DropTable(&models.ChatRoom{}, &models.ChatMember{}, &models.ChatMessage{})
 
 	db.DropType("organisation_role")
 }

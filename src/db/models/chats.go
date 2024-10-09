@@ -2,7 +2,6 @@ package models
 
 import (
 	"encoding/json"
-	"time"
 
 	"gorm.io/gorm"
 )
@@ -40,10 +39,12 @@ func (o *ChatRoom) AfterFind(tx *gorm.DB) error {
 // Member of chats
 type ChatMember struct {
 	Base
-	RoomID string   `gorm:"size:21;not null;" json:"-"`
-	Room   ChatRoom `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
-	UserID string   `gorm:"size:21;not null;" json:"-"`
-	User   User     `gorm:"" json:"member"`
+	RoomID        string      `gorm:"size:21;not null;" json:"-"`
+	Room          ChatRoom    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
+	UserID        string      `gorm:"size:21;not null;" json:"-"`
+	User          User        `gorm:"" json:"member"`
+	LastMessageID *string     `gorm:"size:21;" json:"-"`
+	LastMessage   ChatMessage `gorm:"" json:"lastMessage"`
 }
 
 func (o *ChatMember) SaveMember(tx *gorm.DB) error {
@@ -100,13 +101,4 @@ func (o *ChatMessage) ToJSON() []byte {
 		return nil
 	}
 	return data
-}
-
-type ChatMessageReadStatus struct {
-	Base
-	MessageID string      `gorm:"size:21;not null;" json:"-"` // The message ID
-	Message   ChatMessage `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
-	UserID    string      `gorm:"size:21;not null;" json:"userId"` // The user who read the message
-	User      User        `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
-	ReadAt    time.Time   `gorm:"not null;" json:"readAt"` // The timestamp when the message was read
 }

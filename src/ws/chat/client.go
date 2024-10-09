@@ -64,9 +64,8 @@ func (c *Client) HandleMessage(msg []byte, handler *ChatHandler) {
 	 */
 	switch input.Type {
 	case utils.MessageSend:
-
 		// Try to unmarshal the ws message payload to a valid message struct
-		var message MessageStruct
+		var message MessageSend
 		if err := json.Unmarshal(input.Payload, &message); err != nil {
 			// Failed to parse input payload
 			Err := &ws.WSError{
@@ -120,9 +119,53 @@ func (c *Client) HandleMessage(msg []byte, handler *ChatHandler) {
 		// Broadcast message to the clients in room
 		handler.Hub.Broadcast <- &response
 		handler.NotificationHub.NewNotification(c.RoomID, "Message", dbMessage.ToJSON())
+	case utils.MessageRead:
+		var readMessage MessageRead
+		if err := json.Unmarshal(input.Payload, &readMessage); err != nil {
+			Err := &ws.WSError{
+				Message: "Invalid message input",
+			}
+			c.Message <- &ws.WSMessage{
+				Type:    utils.MessageError,
+				RoomID:  input.RoomID,
+				Payload: Err.ToJSON(),
+			}
+			return
+		}
+
+		if err := updateUserLastReadMessage(c.RoomID, c.UserID, readMessage.MessageID); err != nil {
+			Err := &ws.WSError{
+				Message: "Failed to update read message",
+			}
+			c.Message <- &ws.WSMessage{
+				Type:    utils.MessageError,
+				RoomID:  input.RoomID,
+				Payload: Err.ToJSON(),
+			}
+			return
+		}
+
 	case utils.MessageTyping:
 		handler.Hub.Broadcast <- &input
 	default:
 		handler.Hub.Broadcast <- &input
 	}
+}
+
+// Function to update the user's last read message
+func updateUserLastReadMessage(roomID, userID, messageID string) error {
+	var member models.ChatMember
+
+	// Fetch the member record from the database
+	if err := db.DB.Model(&models.ChatMember{}).
+		Where("room_id = ? AND user_id = ?", roomID, userID).
+		First(&member).Error; err != nil {
+		return err
+	}
+
+	// Update the LastMessageID with the new message that the user has read
+	member.LastMessageID = &messageID
+
+	// Save the updated member back to the database
+	return db.DB.Save(&member).Error
 }

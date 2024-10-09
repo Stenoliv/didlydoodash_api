@@ -3,6 +3,7 @@ package chat
 import (
 	"DidlyDoodash-api/src/db/daos"
 	"DidlyDoodash-api/src/db/models"
+	"DidlyDoodash-api/src/utils"
 	"DidlyDoodash-api/src/ws"
 	"net/http"
 
@@ -20,12 +21,13 @@ func NewChatHandler() *ChatHandler {
 	return &ChatHandler{Hub: hub, NotificationHub: notificationHub}
 }
 
+// Join chat room
 func (h *ChatHandler) JoinRoom(c *gin.Context) {
 	roomID := c.Param("chatId")
 	// Retrive chat in database and check that user is part of
 	room, err := daos.GetChat(roomID)
 	if err != nil || room == nil {
-		c.JSON(http.StatusForbidden, "Not in room"+err.Error())
+		c.JSON(http.StatusBadRequest, utils.ChatNotFound)
 		return
 	}
 
@@ -36,14 +38,14 @@ func (h *ChatHandler) JoinRoom(c *gin.Context) {
 		}
 	}
 	if !ok {
-		c.JSON(http.StatusForbidden, "Not in room"+err.Error())
+		c.JSON(http.StatusForbidden, utils.ChatMemberNotFound)
 		return
 	}
 
 	// Create websocket connection
 	conn, err := ws.WebsocketUpgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, "Failed to initiate websocket connection")
+		c.JSON(http.StatusBadRequest, utils.WebSocketFailed)
 		return
 	}
 
@@ -61,11 +63,12 @@ func (h *ChatHandler) JoinRoom(c *gin.Context) {
 	go client.readMessage(h)
 }
 
+// Connect to chat notification channel
 func (h *ChatHandler) NotificationHandler(c *gin.Context) {
 	// Connect to websocker
 	conn, err := ws.WebsocketUpgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, "Failed to initiate websocket connection")
+		c.JSON(http.StatusBadRequest, utils.WebSocketFailed)
 		return
 	}
 

@@ -62,6 +62,8 @@ func (hub *NotificationHub) run() {
 		select {
 		case client := <-hub.Register:
 			hub.Clients[client.UserID] = client
+
+			// send to client number of new messages based on lastRead message
 		case client := <-hub.Unregister:
 			if _, ok := hub.Clients[client.UserID]; ok {
 				delete(hub.Clients, client.UserID)
