@@ -8,9 +8,10 @@ type Tokens struct {
 type MessageType string
 
 const (
-	MessageSend   MessageType = "message.send"
-	MessageRead   MessageType = "message.read"
-	SendMessages  MessageType = "message.all"
-	MessageTyping MessageType = "message.type"
-	MessageError  MessageType = "message.error"
+	MessageSend      MessageType = "message.send"
+	MessageRead      MessageType = "message.read"
+	SendMessages     MessageType = "message.all"
+	LoadMoreMessages MessageType = "message.more"
+	MessageTyping    MessageType = "message.type"
+	MessageError     MessageType = "message.error"
 )

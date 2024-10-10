@@ -1,6 +1,7 @@
 package models
 
 import (
+	"DidlyDoodash-api/src/db"
 	"encoding/json"
 
 	"gorm.io/gorm"
@@ -74,9 +75,28 @@ func (o *ChatMember) AfterFind(tx *gorm.DB) (err error) {
 	return nil
 }
 
+// Function that check how many unread messages a user has in a chat.
+func (cm *ChatMember) GetNumOfUnreadMessage() (num int64) {
+	num = 0
+	// If user has opened chat and read any message check if there are newer than that message else send count of all messages in chat
+	if cm.LastMessageID != nil {
+		if err := db.DB.Model(&ChatMessage{}).Where("id = ?", cm.LastMessageID).First(&cm.LastMessage).Error; err != nil {
+			return 0
+		}
+		if err := db.DB.Model(&ChatMessage{}).Where("created_at > ? and room_id = ?", cm.LastMessage.CreatedAt, cm.LastMessage.RoomID).Count(&num).Error; err != nil {
+			return num
+		}
+	} else {
+		if err := db.DB.Model(&ChatMessage{}).Where("room_id = ?", cm.RoomID).Count(&num).Error; err != nil {
+			return 0
+		}
+	}
+	return num
+}
+
 // Chat message
 type ChatMessage struct {
-	Base
+	BaseCreatedIndex
 	RoomID  string   `gorm:"size:21;not null;" json:"-"`
 	Room    ChatRoom `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;" json:"-"`
 	UserID  string   `gorm:"size:21;not null;" json:"userId"`

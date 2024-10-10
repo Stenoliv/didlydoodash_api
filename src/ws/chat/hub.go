@@ -64,7 +64,11 @@ func (h *Hub) run() {
 
 			// Get messages from the database and send if found
 			var messages []models.ChatMessage
-			if err := db.DB.Model(&models.ChatMessage{}).Where("room_id = ?", client.RoomID).Find(&messages).Error; err != nil {
+			// Load the first page (page 1 corresponds to offset 0)
+			if err := db.DB.Model(&models.ChatMessage{}).
+				Where("room_id = ?", client.RoomID).
+				Order("created_at ASC").
+				Scan(&messages).Error; err != nil {
 				return
 			}
 

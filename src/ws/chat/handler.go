@@ -65,6 +65,7 @@ func (h *ChatHandler) JoinRoom(c *gin.Context) {
 
 // Connect to chat notification channel
 func (h *ChatHandler) NotificationHandler(c *gin.Context) {
+	orgID := c.Param("id")
 	// Connect to websocker
 	conn, err := ws.WebsocketUpgrader.Upgrade(c.Writer, c.Request, nil)
 	if err != nil {
@@ -75,6 +76,7 @@ func (h *ChatHandler) NotificationHandler(c *gin.Context) {
 	// Create SSE client and register to the notification hub
 	client := &NotificationClient{
 		Conn:         conn,
+		OrgID:        orgID,
 		UserID:       *models.CurrentUser,
 		Notification: make(chan *MessageNotification),
 	}

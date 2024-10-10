@@ -59,9 +59,6 @@ func (c *Client) HandleMessage(msg []byte, handler *ChatHandler) {
 		log.Println("Failed to unmarshal JSON:", err)
 		return
 	}
-	/**
-	 * Switch and handle different message types
-	 */
 	switch input.Type {
 	case utils.MessageSend:
 		// Try to unmarshal the ws message payload to a valid message struct
@@ -118,7 +115,17 @@ func (c *Client) HandleMessage(msg []byte, handler *ChatHandler) {
 
 		// Broadcast message to the clients in room
 		handler.Hub.Broadcast <- &response
-		handler.NotificationHub.NewNotification(c.RoomID, "Message", dbMessage.ToJSON())
+
+		msg := &NewMessage{
+			ChatID:  c.RoomID,
+			UserID:  c.UserID,
+			Message: message.Message,
+		}
+		notification, err := msg.ToJSON()
+		if err != nil {
+			return
+		}
+		handler.NotificationHub.NewNotification(MessageNew, notification)
 	case utils.MessageRead:
 		var readMessage MessageRead
 		if err := json.Unmarshal(input.Payload, &readMessage); err != nil {
@@ -144,7 +151,6 @@ func (c *Client) HandleMessage(msg []byte, handler *ChatHandler) {
 			}
 			return
 		}
-
 	case utils.MessageTyping:
 		handler.Hub.Broadcast <- &input
 	default:

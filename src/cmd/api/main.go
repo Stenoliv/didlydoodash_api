@@ -74,7 +74,7 @@ func main() {
 		organisation.GET("/:id/chats/:chatId", chatHandler.JoinRoom)
 
 		// Organisation chats notifcations
-		organisation.GET("/chats/notifications", chatHandler.NotificationHandler)
+		organisation.GET("/:id/chats/notifications", chatHandler.NotificationHandler)
 	}
 
 	// Projects endpoints
