@@ -10,8 +10,12 @@ import (
 func main() {
 	db.Init()
 
-	roles := datatypes.GetOrganisationRolesEnum(datatypes.OrganisationRoles)
-	db.CreateType("organisation_role", fmt.Sprintf("ENUM (%s)", roles))
+	orgRoles := datatypes.GetOrganisationRolesEnum(datatypes.OrganisationRoles)
+	db.CreateType("organisation_role", fmt.Sprintf("ENUM (%s)", orgRoles))
+	projectRoles := datatypes.GetProjectRolesEnum(datatypes.ProjectRoles)
+	db.CreateType("project_role", fmt.Sprintf("ENUM (%s)", projectRoles))
+	projectStatus := datatypes.GetProjectStatusEnum(datatypes.ProjectStatusEnum)
+	db.CreateType("project_status", fmt.Sprintf("ENUM (%s)", projectStatus))
 
 	// Check all tables for users
 	db.DB.AutoMigrate(&models.User{})
@@ -26,5 +30,10 @@ func main() {
 
 	// Check all tables for projects
 	db.DB.AutoMigrate(&models.Project{})
-	db.DB.AutoMigrate(&models.ProjectMembers{})
+	db.DB.AutoMigrate(&models.ProjectMember{})
+
+	// Check all tables for kanbans
+	db.DB.AutoMigrate(&models.Kanban{})
+	db.DB.AutoMigrate(&models.KanbanCategory{})
+	db.DB.AutoMigrate(&models.KanbanItem{})
 }

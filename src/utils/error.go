@@ -41,17 +41,27 @@ const (
 	// Organisation errors: 300
 	CodeOrgCreate      = 300
 	CodeOrgNotFound    = 304
-	CodeMemberNotFound = 320
+	CodeMemberNotFound = 310
 
-	CodeChatNotFound       = 350
-	CodeChatMemberNotFound = 351
+	// Organisation chats
+	CodeChatNotFound       = 330
+	CodeChatMemberNotFound = 334
 
-	// Websocket errors
-	CodeWebsocketFailed = 400
+	// Project error: 350
+	CodeProjectCreate         = 350
+	CodeProjectNotFound       = 354
+	CodeProjectMemberNotFound = 364
+
+	// Kanban error: 380
+	CodeKanbanCreate   = 380
+	CodeKanbanNotFound = 384
 
 	// Server error codes
 	CodeServerError   = 500
 	CodeSaveUserError = 501
+
+	// Websocket errors
+	CodeWebsocketFailed = 600
 )
 
 // User input errors
@@ -74,8 +84,20 @@ var (
 	OrgNotFound       = NewEndpointError(CodeOrgNotFound, "Organisation does not exist")
 	MemberNotFound    = NewEndpointError(CodeMemberNotFound, "Member was not found in organisation")
 
+	// Chat errors
 	ChatNotFound       = NewEndpointError(CodeChatNotFound, "Chat not found")
 	ChatMemberNotFound = NewEndpointError(CodeChatMemberNotFound, "Not part of chat")
+
+	// Project errors
+	ProjectCreateError    = NewEndpointError(CodeProjectCreate, "Failed to create project")
+	ProjectNotFound       = NewEndpointError(CodeProjectNotFound, "Project not found")
+	ProjectMemberNotFound = NewEndpointError(CodeProjectMemberNotFound, "Project member not found")
+)
+
+// Kanban errors
+var (
+	KanbanCreateError = NewEndpointError(CodeKanbanCreate, "Failed to create kanban")
+	KanbanNotFound    = NewEndpointError(CodeKanbanNotFound, "Kanban not found")
 )
 
 // WebSocket errors

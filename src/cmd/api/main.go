@@ -74,24 +74,31 @@ func main() {
 		organisation.GET("/:id/chats/:chatId", chatHandler.JoinRoom)
 
 		// Organisation chats notifcations
-		organisation.GET("/:id/chats/notifications", chatHandler.NotificationHandler)
-	}
+		organisation.GET("/notifications", chatHandler.NotificationHandler)
 
-	// Projects endpoints
-	project := r.Group("/project", middleware.AuthMiddleware())
-	{
-		// Basic endpoints
-		project.GET("/:id", handlers.GetProjects)                              // Get all projects of selected organisation
-		project.POST("/:id", handlers.CreateProjects)                          // Create a new project in organisation
-		project.PATCH("/:id/:projectID", handlers.UpdateProjects)              // Update a project in an organisation
-		project.DELETE("/:id/:projectID", handlers.DeleteProjects)             // Archive a project in an organisation
-		project.DELETE("/:id/:projectID/delete", handlers.PermaDeleteProjects) // Delete a project in an organisation
+		// Projects endpoints
+		project := organisation.Group("/:id/projects", middleware.ProjectMiddleware())
+		{
+			// Basic endpoints
+			project.GET("", handlers.GetAllProjects)                           // Get all projects of selected organisation
+			project.POST("", handlers.CreateProjects)                          // Create a new project in organisation
+			project.PATCH("/:projectID", handlers.UpdateProjects)              // Update a project in an organisation
+			project.DELETE("/:projectID", handlers.DeleteProjects)             // Archive a project in an organisation
+			project.DELETE("/:projectID/delete", handlers.PermaDeleteProjects) // Delete a project in an organisation
 
-		// Project members
-		project.GET("/:id/members", handlers.GetProjectMembers)              // Get project members
-		project.POST("/:id/members", handlers.GetProjectMember)              // Add project member
-		project.PATCH("/:id/members/:userID", handlers.UpdateProjectMember)  // Update project member
-		project.DELETE("/:id/members/:userID", handlers.DeleteProjectMember) // Remove member from project
+			// Project members
+			project.GET("/:projectID/members", handlers.GetProjectMembers)              // Get project members
+			project.POST("/:projectID/members", handlers.GetProjectMember)              // Add project member
+			project.PATCH("/:projectID/members/:userID", handlers.UpdateProjectMember)  // Update project member
+			project.DELETE("/:projectID/members/:userID", handlers.DeleteProjectMember) // Remove member from project
+
+			// Kanban endpoints
+			kanban := project.Group("/:projectID/kanbans")
+			{
+				kanban.GET("", handlers.GetAllKanbans)
+				kanban.POST("", handlers.CreateKanban)
+			}
+		}
 	}
 
 	r.Run(fmt.Sprintf(":%s", config.PORT))
