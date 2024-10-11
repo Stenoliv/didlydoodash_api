@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"DidlyDoodash-api/src/db"
 	"DidlyDoodash-api/src/db/daos"
 	"DidlyDoodash-api/src/utils"
 	"net/http"
@@ -19,7 +18,6 @@ func GetWhiteboards(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"Whiteboards": whiteboards})
 }
 func CreateNewWhiteboard(c *gin.Context) {
-	projID := c.Param("id")
-	tx := db.DB.Begin()
-
+	// projID := c.Param("id")
+	// tx := db.DB.Begin()
 }

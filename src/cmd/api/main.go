@@ -109,7 +109,7 @@ func main() {
 			}
 
 			// Whiteboard
-			whiteboard := project.Group("/:id/whiteboards", middleware.AuthMiddleware())
+			whiteboard := project.Group("/:projectID/whiteboards", middleware.AuthMiddleware())
 			{
 
 				// Basic endpoints
