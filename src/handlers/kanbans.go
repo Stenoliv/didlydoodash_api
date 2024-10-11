@@ -39,13 +39,30 @@ func CreateKanban(c *gin.Context) {
 		ProjectID: projectID,
 	}
 
+	// Start transaction
 	tx := db.DB.Begin()
 
+	// Save kanban to transaction
 	if err := kanban.SaveKanban(tx); err != nil {
+		tx.Rollback()
 		c.AbortWithStatusJSON(http.StatusBadRequest, utils.KanbanCreateError)
 		return
 	}
 
+	// create default kanban category
+	cateogry := &models.KanbanCategory{
+		KanbanID: kanban.ID,
+		Name:     "Not assigned",
+	}
+
+	// Save kanban category to transaction
+	if err := cateogry.SaveCategory(tx); err != nil {
+		tx.Rollback()
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.KanbanCreateError)
+		return
+	}
+
+	// Try to commit transaction
 	if err := tx.Commit().Error; err != nil {
 		c.AbortWithStatusJSON(http.StatusInternalServerError, utils.KanbanCreateError)
 		return

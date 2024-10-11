@@ -16,6 +16,8 @@ func main() {
 	db.CreateType("project_role", fmt.Sprintf("ENUM (%s)", projectRoles))
 	projectStatus := datatypes.GetProjectStatusEnum(datatypes.ProjectStatusEnum)
 	db.CreateType("project_status", fmt.Sprintf("ENUM (%s)", projectStatus))
+	kanbanStatus := datatypes.GetKanbanStatusEnum(datatypes.KanbanStatusEnum)
+	db.CreateType("kanban_status", fmt.Sprintf("ENUM (%s)", kanbanStatus))
 
 	// Check all tables for users
 	db.DB.AutoMigrate(&models.User{})

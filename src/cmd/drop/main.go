@@ -17,4 +17,5 @@ func main() {
 	db.DropType("organisation_role")
 	db.DropType("project_role")
 	db.DropType("project_status")
+	db.DropType("kanban_status")
 }

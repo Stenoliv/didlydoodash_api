@@ -6,6 +6,7 @@ import (
 	"DidlyDoodash-api/src/handlers"
 	"DidlyDoodash-api/src/handlers/middleware"
 	"DidlyDoodash-api/src/ws/chat"
+	"DidlyDoodash-api/src/ws/kanban"
 	"DidlyDoodash-api/src/ws/whiteboardws"
 	"fmt"
 	"time"
@@ -94,32 +95,39 @@ func main() {
 			project.DELETE("/:projectID/members/:userID", handlers.DeleteProjectMember) // Remove member from project
 
 			// Kanban endpoints
-			kanban := project.Group("/:projectID/kanbans")
+			kanbans := project.Group("/:projectID/kanbans")
 			{
-				kanban.GET("", handlers.GetAllKanbans)
-				kanban.POST("", handlers.CreateKanban)
+				kanbanHandler := kanban.NewHandler()
+
+				// Basic endpoints
+				kanbans.GET("", handlers.GetAllKanbans)
+				kanbans.POST("", handlers.CreateKanban)
+				kanbans.PATCH("/:kanbanID", nil)
+
+				// WS
+				kanbans.GET("/:kanbanID", kanbanHandler.JoinKanban)
+			}
+
+			// Whiteboard
+			whiteboard := project.Group("/:id/whiteboards", middleware.AuthMiddleware())
+			{
+
+				// Basic endpoints
+				whiteboard.GET("", handlers.GetOrganisations)      // Get whiteboard user is part of
+				whiteboard.POST("", handlers.CreateOrganisation)   // Create a new organisation
+				whiteboard.DELETE("", handlers.DeleteOrganisation) // Delete organisation
+
+				// Organisation members
+				organisation.GET("/members", handlers.GetOrganisationMembers)              // Get organisation members
+				organisation.POST("/members", handlers.AddOrganisationMember)              // Add member to organisation
+				organisation.PATCH("/members/:userID", handlers.UpdateOrganisationMember)  // Update role etc... of organisation member
+				organisation.DELETE("/members/:userID", handlers.DeleteOrganisationMember) // Remove organisation member
+
+				go whiteboardws.HandleMessages()
 			}
 		}
 
-		// Whiteboard
-		whiteboard := project.Group("/:id/whiteboards", middleware.AuthMiddleware())
-	{
-		
-		// Basic endpoints
-		whiteboard.GET("", handlers.GetOrganisations)          // Get whiteboard user is part of
-		whiteboard.POST("", handlers.CreateOrganisation)       // Create a new organisation
-		whiteboard.DELETE("", handlers.DeleteOrganisation) 		// Delete organisation
-
-		// Organisation members
-		organisation.GET("/members", handlers.GetOrganisationMembers)              // Get organisation members
-		organisation.POST("/members", handlers.AddOrganisationMember)              // Add member to organisation
-		organisation.PATCH("/members/:userID", handlers.UpdateOrganisationMember)  // Update role etc... of organisation member
-		organisation.DELETE("/members/:userID", handlers.DeleteOrganisationMember) // Remove organisation member
-
-		go whiteboardws.HandleMessages()
-	}
 	}
 
-	
 	r.Run(fmt.Sprintf(":%s", config.PORT))
 }

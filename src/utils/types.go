@@ -14,4 +14,9 @@ const (
 	LoadMoreMessages MessageType = "message.more"
 	MessageTyping    MessageType = "message.type"
 	MessageError     MessageType = "message.error"
+
+	// Kanban messages
+	JoinKanban         MessageType = "kanban.load"
+	NewKanbanCategory  MessageType = "kanban.category.new"
+	EditKanbanCategory MessageType = "kanban.category.edit"
 )

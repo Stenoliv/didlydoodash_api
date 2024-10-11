@@ -14,3 +14,11 @@ func GetProjects(orgID string) (projects []models.Project, err error) {
 	}
 	return projects, nil
 }
+
+func GetProject(projectID string) (*models.Project, error) {
+	var project models.Project
+	if err := db.DB.Model(&models.Project{}).Where("id = ?", projectID).First(&project).Error; err != nil {
+		return nil, err
+	}
+	return &project, nil
+}
