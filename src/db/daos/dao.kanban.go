@@ -19,3 +19,11 @@ func GetKanban(id string) (*models.Kanban, error) {
 	}
 	return kanban, nil
 }
+
+func GetCategory(id string) (*models.KanbanCategory, error) {
+	var category *models.KanbanCategory
+	if err := db.DB.Model(&models.KanbanCategory{}).Where("id = ?", id).Find(&category).Error; err != nil {
+		return nil, err
+	}
+	return category, nil
+}

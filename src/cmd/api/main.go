@@ -102,7 +102,7 @@ func main() {
 				// Basic endpoints
 				kanbans.GET("", handlers.GetAllKanbans)
 				kanbans.POST("", handlers.CreateKanban)
-				kanbans.PATCH("/:kanbanID", nil)
+				kanbans.DELETE("/:kanbanID", nil)
 
 				// WS
 				kanbans.GET("/:kanbanID", kanbanHandler.JoinKanban)
@@ -111,7 +111,6 @@ func main() {
 			// Whiteboard
 			whiteboard := project.Group("/:projectID/whiteboards", middleware.AuthMiddleware())
 			{
-
 				// Basic endpoints
 				whiteboard.GET("", handlers.GetOrganisations)      // Get whiteboard user is part of
 				whiteboard.POST("", handlers.CreateOrganisation)   // Create a new organisation

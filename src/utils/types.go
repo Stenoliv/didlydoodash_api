@@ -16,7 +16,8 @@ const (
 	MessageError     MessageType = "message.error"
 
 	// Kanban messages
-	JoinKanban         MessageType = "kanban.load"
-	NewKanbanCategory  MessageType = "kanban.category.new"
-	EditKanbanCategory MessageType = "kanban.category.edit"
+	JoinKanban           MessageType = "kanban.load"
+	NewKanbanCategory    MessageType = "kanban.category.new"
+	EditKanbanCategory   MessageType = "kanban.category.edit"
+	DeleteKanbanCategory MessageType = "kanban.category.delete"
 )

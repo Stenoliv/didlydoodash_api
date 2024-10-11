@@ -2,6 +2,7 @@ package kanban
 
 import (
 	"DidlyDoodash-api/src/db"
+	"DidlyDoodash-api/src/db/daos"
 	"DidlyDoodash-api/src/db/models"
 	"DidlyDoodash-api/src/utils"
 	"DidlyDoodash-api/src/ws"
@@ -96,7 +97,7 @@ func (c *Client) handleMessage(msg []byte, handler *Handler) {
 			return
 		}
 
-		payload := &NewCategoryResponse{
+		payload := &CategoryResponse{
 			Category: *category,
 		}
 
@@ -113,10 +114,102 @@ func (c *Client) handleMessage(msg []byte, handler *Handler) {
 			return
 		}
 
-		c.Message <- &ws.WSMessage{
+		handler.Hub.Broadcast <- &ws.WSMessage{
 			Type:    utils.NewKanbanCategory,
 			RoomID:  c.RoomID,
 			Payload: raw,
 		}
+	case utils.EditKanbanCategory:
+		var editInput EditCategory
+		if err := json.Unmarshal(input.Payload, &editInput); err != nil {
+			c.SendErrorMessage("Failed to update kanban category")
+			return
+		}
+
+		category, err := daos.GetCategory(editInput.ID)
+		if err != nil {
+			c.SendErrorMessage("Failed to update kanban category")
+			return
+		}
+
+		// Start transaction to database
+		tx := db.DB.Begin()
+		if err := tx.Model(&category).Update("name", editInput.Name).Error; err != nil {
+			tx.Rollback()
+			c.SendErrorMessage("Failed to update kanban category")
+			return
+		}
+
+		response := &CategoryResponse{
+			Category: *category,
+		}
+
+		payload, err := response.ToJSON()
+		if err != nil {
+			tx.Rollback()
+			c.SendErrorMessage("Failed to update kanban category")
+			return
+		}
+
+		if err := tx.Commit().Error; err != nil {
+			tx.Rollback()
+			c.SendErrorMessage("Failed to update kanban category")
+			return
+		}
+
+		handler.Hub.Broadcast <- &ws.WSMessage{
+			Type:    utils.EditKanbanCategory,
+			RoomID:  c.RoomID,
+			Payload: payload,
+		}
+	case utils.DeleteKanbanCategory:
+		var deleteInput DeleteCategory
+		if err := json.Unmarshal(input.Payload, &deleteInput); err != nil {
+			c.SendErrorMessage("Failed to delete kanban category")
+			return
+		}
+
+		// Get category from database
+		category, err := daos.GetCategory(deleteInput.ID)
+		if err != nil {
+			c.SendErrorMessage("Category doesn't exist")
+			return
+		}
+
+		// Try to delete category
+		tx := db.DB.Begin()
+		if err := tx.Delete(&category).Error; err != nil {
+			tx.Rollback()
+			c.SendErrorMessage("Failed to delete kanban category")
+			return
+		}
+
+		deleteCategoryResponse := &CategoryResponse{
+			Category: *category,
+		}
+
+		// Create raw json of response
+		payload, err := json.Marshal(&deleteCategoryResponse)
+		if err != nil {
+			tx.Rollback()
+			c.SendErrorMessage("Failed to delete kanban category")
+			return
+		}
+
+		// Commit changes to database
+		if err := tx.Commit().Error; err != nil {
+			tx.Rollback()
+			c.SendErrorMessage("Failed to delete kanban category")
+			return
+		}
+
+		// Send message to clients
+		handler.Hub.Broadcast <- &ws.WSMessage{
+			Type:    utils.DeleteKanbanCategory,
+			RoomID:  c.RoomID,
+			Payload: payload,
+		}
+	default:
+		return
 	}
 }

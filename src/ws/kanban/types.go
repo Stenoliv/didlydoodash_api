@@ -19,19 +19,22 @@ type NewCategory struct {
 	Name string `json:"name"`
 }
 
-type NewCategoryResponse struct {
+// Edit category websocket message
+type EditCategory struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+// Delete category websocket message
+type DeleteCategory struct {
+	ID string
+}
+
+// Category response
+type CategoryResponse struct {
 	Category models.KanbanCategory `json:"category"`
 }
 
-func (m *NewCategoryResponse) ToJSON() ([]byte, error) {
-	return json.Marshal(&m)
-}
-
-// Edit category websocket message
-type EditCategory struct {
-	Name string `json:""`
-}
-
-func (m *EditCategory) ToJSON() ([]byte, error) {
+func (m *CategoryResponse) ToJSON() ([]byte, error) {
 	return json.Marshal(&m)
 }

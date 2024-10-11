@@ -24,14 +24,14 @@ func (k *Kanban) BeforeCreate(tx *gorm.DB) error {
 }
 
 func (k *Kanban) AfterCreate(tx *gorm.DB) error {
-	if err := tx.Model(&KanbanCategory{}).Where("kanban_id = ?", k.ID).Find(&k.Categories).Error; err != nil {
+	if err := tx.Model(&KanbanCategory{}).Where("kanban_id = ?", k.ID).Order("created_at ASC").Find(&k.Categories).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
 func (k *Kanban) AfterFind(tx *gorm.DB) error {
-	if err := tx.Model(&KanbanCategory{}).Where("kanban_id = ?", k.ID).Find(&k.Categories).Error; err != nil {
+	if err := tx.Model(&KanbanCategory{}).Where("kanban_id = ?", k.ID).Order("created_at ASC").Find(&k.Categories).Error; err != nil {
 		return err
 	}
 	return nil
@@ -57,7 +57,7 @@ func (k *KanbanCategory) BeforeCreate(tx *gorm.DB) error {
 }
 
 func (k *KanbanCategory) AfterFind(tx *gorm.DB) error {
-	if err := tx.Model(&KanbanItem{}).Where("kanban_category_id = ?", k.ID).Find(&k.Items).Error; err != nil {
+	if err := tx.Model(&KanbanItem{}).Where("kanban_category_id = ?", k.ID).Order("created_at ASC").Find(&k.Items).Error; err != nil {
 		return err
 	}
 	return nil
