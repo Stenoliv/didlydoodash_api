@@ -27,3 +27,11 @@ func GetCategory(id string) (*models.KanbanCategory, error) {
 	}
 	return category, nil
 }
+
+func GetKanbanItem(id string) (*models.KanbanItem, error) {
+	var item *models.KanbanItem
+	if err := db.DB.Model(&models.KanbanItem{}).Where("id = ?", id).Find(&item).Error; err != nil {
+		return nil, err
+	}
+	return item, nil
+}

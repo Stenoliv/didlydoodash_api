@@ -2,6 +2,7 @@ package main
 
 import (
 	"DidlyDoodash-api/src/db"
+	"DidlyDoodash-api/src/db/datatypes"
 	"DidlyDoodash-api/src/db/models"
 )
 
@@ -14,8 +15,14 @@ func main() {
 	db.DB.Migrator().DropTable(&models.ChatRoom{}, &models.ChatMember{}, &models.ChatMessage{})
 	db.DB.Migrator().DropTable(&models.Kanban{}, &models.KanbanCategory{}, &models.KanbanItem{})
 
-	db.DropType("organisation_role")
-	db.DropType("project_role")
-	db.DropType("project_status")
-	db.DropType("kanban_status")
+	// Organisation types
+	db.DropType(datatypes.OrganisationRoleName)
+
+	// Project types
+	db.DropType(datatypes.ProjectRoleName)
+	db.DropType(datatypes.ProjectStatusName)
+
+	// Kanban types
+	db.DropType(datatypes.KanbanStatusName)
+	db.DropType(datatypes.KanbanItemPriorityName)
 }

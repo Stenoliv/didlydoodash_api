@@ -10,14 +10,21 @@ import (
 func main() {
 	db.Init()
 
+	// Organisation types
 	orgRoles := datatypes.GetOrganisationRolesEnum(datatypes.OrganisationRoles)
-	db.CreateType("organisation_role", fmt.Sprintf("ENUM (%s)", orgRoles))
+	db.CreateType(datatypes.OrganisationRoleName, fmt.Sprintf("ENUM (%s)", orgRoles))
+
+	// Project types
 	projectRoles := datatypes.GetProjectRolesEnum(datatypes.ProjectRoles)
-	db.CreateType("project_role", fmt.Sprintf("ENUM (%s)", projectRoles))
+	db.CreateType(datatypes.ProjectRoleName, fmt.Sprintf("ENUM (%s)", projectRoles))
 	projectStatus := datatypes.GetProjectStatusEnum(datatypes.ProjectStatusEnum)
-	db.CreateType("project_status", fmt.Sprintf("ENUM (%s)", projectStatus))
+	db.CreateType(datatypes.ProjectStatusName, fmt.Sprintf("ENUM (%s)", projectStatus))
+
+	// Kanban types
 	kanbanStatus := datatypes.GetKanbanStatusEnum(datatypes.KanbanStatusEnum)
-	db.CreateType("kanban_status", fmt.Sprintf("ENUM (%s)", kanbanStatus))
+	db.CreateType(datatypes.KanbanStatusName, fmt.Sprintf("ENUM (%s)", kanbanStatus))
+	KanbanItemPriority := datatypes.GetKanbanItemPriorityEnum(datatypes.KanbanItemPriorityEnum)
+	db.CreateType(datatypes.KanbanItemPriorityName, fmt.Sprintf("ENUM (%s)", KanbanItemPriority))
 
 	// Check all tables for users
 	db.DB.AutoMigrate(&models.User{})
