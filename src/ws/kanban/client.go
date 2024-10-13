@@ -331,9 +331,22 @@ func (c *Client) handleMessage(msg []byte, handler *Handler) {
 		}
 		// Try to delete item
 		tx := db.DB.Begin()
+		if updateItem.Updates["estimated_time"] == "" {
+			updateItem.Updates["estimated_time"] = nil
+		}
+		if updateItem.Updates["due_date"] == "" {
+			updateItem.Updates["due_date"] = nil
+		}
 		if err := tx.Model(&item).Updates(updateItem.Updates).Error; err != nil {
 			tx.Rollback()
 			c.SendErrorMessage("Server error! Failed to update item")
+			return
+		}
+
+		// Explicitly reload the updated item from the database
+		if err := tx.Model(&item).First(&item).Error; err != nil {
+			tx.Rollback()
+			c.SendErrorMessage("Server error! Failed to retrieve updated item")
 			return
 		}
 		// Try to make response

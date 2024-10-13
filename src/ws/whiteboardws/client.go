@@ -1,14 +1,12 @@
 package whiteboardws
 
 import (
-	"DidlyDoodash-api/src/db/models"
-
 	"github.com/gorilla/websocket"
 )
 
 type Client struct {
 	Conn    *websocket.Conn
-	Message chan models.LineData
+	Message chan *WhiteboardMessage
 	RoomID  string
 	UserID  string
 }

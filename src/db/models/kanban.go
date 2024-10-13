@@ -74,11 +74,11 @@ type KanbanItem struct {
 	Base
 	KanbanCategoryID string                       `gorm:"size:21;not nill;" json:"categoryId"`
 	DeletedAt        gorm.DeletedAt               `gorm:"" json:"deletedAt"`
-	DueDate          *time.Time                   `gorm:"null" json:"dueDate"`
-	EstimatedTime    *int                         `gorm:"null" json:"esitmatedTime"`
+	DueDate          *time.Time                   `gorm:"null" json:"due_date"`
+	EstimatedTime    *int                         `gorm:"null" json:"estimated_time"`
 	Priority         datatypes.KanbanItemPriority `gorm:"type:kanban_item_priority;default:None;not null;" json:"priority"`
 	Title            string                       `gorm:"size:40;not null;" json:"title"`
-	Description      string                       `gorm:"" json:"desc"`
+	Description      string                       `gorm:"" json:"description"`
 	AssignedID       *string                      `gorm:"size:21;null" json:"-"`
 	Assigned         User                         `gorm:"constraint:OnUpdate:CASCADE;OnDelete:CASCADE;" json:"assigned"`
 }

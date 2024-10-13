@@ -5,18 +5,25 @@ import (
 	"sync"
 )
 
+type WhiteboardMessage struct {
+	RoomID  string           `json:"roomId" binding:"required"`
+	Payload *models.LineData `json:"lineData" binding:"required"`
+}
+
 type Hub struct {
 	Rooms      map[string]*Room
 	Register   chan *Client
 	Unregister chan *Client
-	Broadcast  chan *models.LineData
+	Broadcast  chan *WhiteboardMessage
 	mu         sync.Mutex
 }
+
 type Room struct {
 	RoomID  string
 	Clients map[string]*Client
 	mu      sync.Mutex
 }
+
 type MessageWB struct {
 	Data   *models.LineData `json:"linedata"`
 	RoomId string           `json:"id"`
@@ -49,7 +56,7 @@ func (h *Hub) run() {
 			h.mu.Unlock()
 		case message := <-h.Broadcast:
 			h.mu.Lock()
-			if room, exists := h.Rooms[Room.RoomID]; exists {
+			if room, exists := h.Rooms[message.RoomID]; exists {
 				room.mu.Lock()
 				for _, client := range room.Clients {
 					select {
