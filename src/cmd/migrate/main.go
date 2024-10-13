@@ -45,4 +45,6 @@ func main() {
 	db.DB.AutoMigrate(&models.Kanban{})
 	db.DB.AutoMigrate(&models.KanbanCategory{})
 	db.DB.AutoMigrate(&models.KanbanItem{})
+
+	db.DB.AutoMigrate(&models.WhiteboardRoom{})
 }

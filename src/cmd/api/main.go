@@ -109,18 +109,12 @@ func main() {
 			}
 
 			// Whiteboard
-			whiteboard := project.Group("/:projectID/whiteboards", middleware.AuthMiddleware())
+			whiteboard := project.Group("/:projectID/whiteboards")
 			{
 				// Basic endpoints
-				whiteboard.GET("", handlers.GetOrganisations)      // Get whiteboard user is part of
-				whiteboard.POST("", handlers.CreateOrganisation)   // Create a new organisation
-				whiteboard.DELETE("", handlers.DeleteOrganisation) // Delete organisation
-
-				// Organisation members
-				organisation.GET("/members", handlers.GetOrganisationMembers)              // Get organisation members
-				organisation.POST("/members", handlers.AddOrganisationMember)              // Add member to organisation
-				organisation.PATCH("/members/:userID", handlers.UpdateOrganisationMember)  // Update role etc... of organisation member
-				organisation.DELETE("/members/:userID", handlers.DeleteOrganisationMember) // Remove organisation member
+				whiteboard.GET("", handlers.GetWhiteboards)      // Get whiteboard user is part of
+				whiteboard.POST("", handlers.CreateNewWhiteboard)   // Create a new Whiteboard
+				whiteboard.DELETE("/:whiteboardID", handlers.DeleteWhiteboard) // Delete Whiteboard
 
 				go whiteboardws.HandleMessages()
 			}

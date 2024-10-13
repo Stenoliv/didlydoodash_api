@@ -56,6 +56,11 @@ const (
 	CodeKanbanCreate   = 380
 	CodeKanbanNotFound = 384
 
+	// Whiteboard error: 700
+	CodeWhiteboardCreate = 700
+	CodeWhiteboardNotFound = 704
+
+
 	// Server error codes
 	CodeServerError   = 500
 	CodeSaveUserError = 501
@@ -98,6 +103,12 @@ var (
 var (
 	KanbanCreateError = NewEndpointError(CodeKanbanCreate, "Failed to create kanban")
 	KanbanNotFound    = NewEndpointError(CodeKanbanNotFound, "Kanban not found")
+)
+
+// Whiteboard errors 
+var (
+	WhiteboardCreateError = NewEndpointError(CodeWhiteboardCreate, "Failed to create Whiteboard")
+	WhiteboardNotFound    = NewEndpointError(CodeWhiteboardNotFound, "Whiteboard not found")
 )
 
 // WebSocket errors
