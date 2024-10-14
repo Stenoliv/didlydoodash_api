@@ -16,7 +16,7 @@ services:
       - DB_HOST=didlydoodash-db-didlydoodash.k.aivencloud.com
       - DB_PORT=14575
       - DB_USER=avnadmin
-      - DB_PASSWORD=********
+      - DB_PASSWORD=
       - DB_SSL=require
       - DB_TIMEZONE=Europe/Helsinki
       - MODE=debug

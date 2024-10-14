@@ -61,7 +61,7 @@ func CreateNewWhiteboard(c *gin.Context) {
 		tx.Rollback()
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"Whiteboard": whiteboard})
+	c.JSON(http.StatusCreated, gin.H{"whiteboard": whiteboard})
 }
 
 func DeleteWhiteboard(c *gin.Context) {

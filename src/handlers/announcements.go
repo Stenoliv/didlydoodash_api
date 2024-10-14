@@ -50,7 +50,7 @@ func CreateAnnouncement(c *gin.Context) {
 		tx.Rollback()
 		return
 	}
-	c.JSON(http.StatusCreated, gin.H{"Announcement": announcement})
+	c.JSON(http.StatusCreated, gin.H{"announcement": announcement})
 }
 func DeleteAnnouncement(c *gin.Context) {
 	id := c.Param("announcementID")
