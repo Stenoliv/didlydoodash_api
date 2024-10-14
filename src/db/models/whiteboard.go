@@ -25,3 +25,9 @@ func (wb *WhiteboardRoom) SaveWhiteboardRoom(tx *gorm.DB) error {
 func (wb *WhiteboardRoom) BeforeSave(tx *gorm.DB) error {
 	return nil
 }
+func (wb *WhiteboardRoom) AfterFind(tx *gorm.DB) error {
+	if err := tx.Model(&LineData{}).Where("whiteboard_id = ?", wb.ID).Order("created_at ASC").Find(&wb.Lines).Error; err != nil {
+		return err
+	}
+	return nil
+}

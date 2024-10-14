@@ -112,11 +112,11 @@ func main() {
 			whiteboard := project.Group("/:projectID/whiteboards")
 			{
 				// Basic endpoints
-				whiteboard.GET("", handlers.GetWhiteboards)      // Get whiteboard user is part of
-				whiteboard.POST("", handlers.CreateNewWhiteboard)   // Create a new Whiteboard
+				whiteboard.GET("", handlers.GetWhiteboards)                    // Get whiteboard user is part of
+				whiteboard.POST("", handlers.CreateNewWhiteboard)              // Create a new Whiteboard
 				whiteboard.DELETE("/:whiteboardID", handlers.DeleteWhiteboard) // Delete Whiteboard
-
-				go whiteboardws.HandleMessages()
+				whiteboardHandler := whiteboardws.NewHandler()
+				whiteboard.GET("/:wbID", whiteboardHandler.HandleConnections)
 			}
 		}
 
