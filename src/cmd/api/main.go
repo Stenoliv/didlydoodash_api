@@ -27,7 +27,7 @@ func main() {
 	r.Use(gin.Recovery())
 	r.Use(middleware.RequestLoggerMiddleware())
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5000"},                     // Add your frontend URL
+		AllowOrigins:     []string{"*"},                                         // Add your frontend URL
 		AllowMethods:     []string{"POST", "PATCH", "GET", "DELETE", "OPTIONS"}, // Include OPTIONS
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},   // Specify headers
 		ExposeHeaders:    []string{"Content-Length"},

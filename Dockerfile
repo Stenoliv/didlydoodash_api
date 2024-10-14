@@ -3,20 +3,19 @@ FROM golang:1.22.3-alpine
 
 WORKDIR /app
 
-ENV API_PORT=8081 
-
-ENV TOKEN_SECRET=asdknasjdbakjbdiuawbeiybajkdnkasndmhkbfihagwiura 
-ENV TOKEN_TIME_ACCESS=150 
-ENV TOKEN_TIME_REFRESH=168 
-ENV TOKEN_REMEMBER_REFRESH=8760 
-
-ENV DB_NAME=didlydoodash 
-ENV DB_HOST=localhost 
-ENV DB_PORT=5432 
-ENV DB_USER=didlydoodash 
-ENV DB_PASSWORD=didlydoodash 
-ENV DB_SSL=disable
+ENV API_PORT=8081
+ENV TOKEN_SECRET=asdknasjdbakjbdiuawbeiybajkdnkasndmhkbfihagwiura
+ENV TOKEN_TIME_ACCESS=150
+ENV TOKEN_TIME_REFRESH=168
+ENV TOKEN_REMEMBER_REFRESH=8760
+ENV DB_NAME=defaultdb
+ENV DB_HOST=didlydoodash-db-didlydoodash.k.aivencloud.com
+ENV DB_PORT=14575
+ENV DB_USER=avnadmin
+ENV DB_PASSWORD=
+ENV DB_SSL=require
 ENV DB_TIMEZONE=Europe/Helsinki
+ENV MODE=production
 
 COPY go.mod ./
 
