@@ -49,4 +49,6 @@ func main() {
 	db.DB.AutoMigrate(&models.WhiteboardRoom{})
 	db.DB.AutoMigrate(&models.LineData{})
 	db.DB.AutoMigrate(&models.LinePoint{})
+
+	db.DB.AutoMigrate(&models.Announcement{})
 }

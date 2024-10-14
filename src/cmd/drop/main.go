@@ -15,6 +15,7 @@ func main() {
 	db.DB.Migrator().DropTable(&models.ChatRoom{}, &models.ChatMember{}, &models.ChatMessage{})
 	db.DB.Migrator().DropTable(&models.Kanban{}, &models.KanbanCategory{}, &models.KanbanItem{})
 	db.DB.Migrator().DropTable(&models.WhiteboardRoom{}, models.LineData{}, models.LinePoint{})
+	db.DB.Migrator().DropTable(&models.Announcement{})
 
 	// Organisation types
 	db.DropType(datatypes.OrganisationRoleName)

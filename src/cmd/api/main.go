@@ -74,7 +74,10 @@ func main() {
 		organisation.PUT("/:id/chats/:chatId/member/:userId", handlers.AddUserToChat)
 		organisation.DELETE("/:id/chats/:chatId/member/:userId", handlers.RemoveUserFromChat)
 		organisation.GET("/:id/chats/:chatId", chatHandler.JoinRoom)
-
+		//announcements
+		organisation.GET("/:id/announcements", handlers.GetAnnouncements)
+		organisation.DELETE("/:id/announcements/:announcementID", handlers.DeleteAnnouncement)
+		organisation.POST("/:id/announcements", handlers.CreateAnnouncement)
 		// Organisation chats notifcations
 		organisation.GET("/notifications", chatHandler.NotificationHandler)
 
