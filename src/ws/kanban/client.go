@@ -16,8 +16,9 @@ import (
 type Client struct {
 	Conn    *websocket.Conn
 	Message chan *ws.WSMessage
-	RoomID  string `json:"roomId"`
-	UserID  string `json:"userId"`
+	RoomID  string                `json:"roomId"`
+	UserID  string                `json:"userId"`
+	Role    datatypes.ProjectRole `json:"role"`
 }
 
 // Function to send error message to user
@@ -77,10 +78,32 @@ func (c *Client) handleMessage(msg []byte, handler *Handler) {
 		return
 	}
 
-	// TODO: Check permissions
+	if input.Type != utils.KanbanArchive && c.Role == datatypes.VIEW {
+		c.SendErrorMessage("You do not have the rights!")
+		return
+	}
 
 	switch input.Type {
 	// Kanban
+
+	case utils.KanbanArchive:
+		archive, err := daos.GetKanbanArchive(c.RoomID)
+		if err != nil {
+			c.SendErrorMessage("Failed to get archive data")
+			return
+		}
+
+		payload, err := json.Marshal(&archive)
+		if err != nil {
+			c.SendErrorMessage("Failed to send archive data")
+			return
+		}
+
+		c.Message <- &ws.WSMessage{
+			Type:    utils.KanbanArchive,
+			RoomID:  c.RoomID,
+			Payload: payload,
+		}
 	case utils.EditKanban:
 		var editKanban EditKanban
 		if err := json.Unmarshal(input.Payload, &editKanban); err != nil {
@@ -117,8 +140,8 @@ func (c *Client) handleMessage(msg []byte, handler *Handler) {
 			RoomID:  c.RoomID,
 			Payload: payload,
 		}
-	// Kanban categories
-	case utils.NewKanbanCategory: // Create new category functionality
+		// Kanban categories
+	case utils.NewKanbanCategory: // Create new category
 		var newCategoryData NewCategory
 		if err := json.Unmarshal(input.Payload, &newCategoryData); err != nil {
 			c.SendErrorMessage("Failed to create new category")
@@ -153,7 +176,51 @@ func (c *Client) handleMessage(msg []byte, handler *Handler) {
 			RoomID:  c.RoomID,
 			Payload: raw,
 		}
-	case utils.EditKanbanCategory: // Edit category functionality
+	case utils.RestoreKanbanCategory: // Restore category
+		var restoreInput RestoreKanbanCategory
+		if err := json.Unmarshal(input.Payload, &restoreInput); err != nil {
+			c.SendErrorMessage("Invalid input on restore category")
+			return
+		}
+
+		// Try to get catergory with ID and that has been soft deleted
+		category, err := daos.GetDeletedCategory(restoreInput.ID)
+		if err != nil || category == nil {
+			c.SendErrorMessage("Category not found")
+			return
+		}
+
+		// Try to mark category not deleted again
+		if err := db.DB.Unscoped().Model(&category).Where("id = ?", category.ID).Update("deleted_at", nil).Error; err != nil {
+			c.SendErrorMessage("Failed to restore category")
+			return
+		}
+
+		// Get updated category if success
+		category, err = daos.GetCategory(restoreInput.ID)
+		if err != nil || category == nil {
+			c.SendErrorMessage("Category not found")
+			return
+		}
+
+		// Create response
+		response := &CategoryResponse{
+			Category: *category,
+		}
+		payload, err := response.ToJSON()
+		if err != nil {
+			c.SendErrorMessage("Failed to restore category")
+			return
+		}
+
+		// Send to room the resored category
+		handler.Hub.Broadcast <- &ws.WSMessage{
+			Type:    utils.RestoreKanbanCategory,
+			RoomID:  c.RoomID,
+			Payload: payload,
+		}
+		SendArchive(c, handler.Hub)
+	case utils.EditKanbanCategory: // Edit category
 		var editInput EditCategory
 		if err := json.Unmarshal(input.Payload, &editInput); err != nil {
 			c.SendErrorMessage("Failed to update kanban category")
@@ -192,7 +259,7 @@ func (c *Client) handleMessage(msg []byte, handler *Handler) {
 			RoomID:  c.RoomID,
 			Payload: payload,
 		}
-	case utils.DeleteKanbanCategory: // Delete cateogry functionality
+	case utils.DeleteKanbanCategory: // Mark cateogry deleted
 		var deleteInput DeleteCategory
 		if err := json.Unmarshal(input.Payload, &deleteInput); err != nil {
 			c.SendErrorMessage("Failed to delete kanban category")
@@ -233,8 +300,56 @@ func (c *Client) handleMessage(msg []byte, handler *Handler) {
 			RoomID:  c.RoomID,
 			Payload: payload,
 		}
+		SendArchive(c, handler.Hub)
+	case utils.PermaDeleteKanbanCategory: // Perma delete category
+		// Check that user is admin of kanban
+		if c.Role != datatypes.ADMIN {
+			c.SendErrorMessage("You do not have the rights")
+			return
+		}
+		// Get input
+		var permaDelete DeleteCategory
+		if err := json.Unmarshal(input.Payload, &permaDelete); err != nil {
+			c.SendErrorMessage("Invalid input to perma delete")
+			return
+		}
+		// Get category
+		category, err := daos.GetDeletedCategory(permaDelete.ID)
+		if err != nil || category == nil {
+			c.SendErrorMessage("No category to delete")
+			return
+		}
+		// Start transaction to perma delete category
+		tx := db.DB.Begin()
+		if err := tx.Unscoped().Delete(&category, "id = ?", category.ID).Error; err != nil {
+			c.SendErrorMessage("Failed to perma delete category")
+			tx.Rollback()
+			return
+		}
+		// Try to create response
+		response := CategoryResponse{
+			Category: *category,
+		}
+		payload, err := response.ToJSON()
+		if err != nil {
+			c.SendErrorMessage("Failed to perma delete category")
+			tx.Rollback()
+			return
+		}
+		// Try to commit transaction
+		if err := tx.Commit().Error; err != nil {
+			c.SendErrorMessage("Failed to perma delete category")
+			tx.Rollback()
+			return
+		}
+		handler.Hub.Broadcast <- &ws.WSMessage{
+			Type:    utils.PermaDeleteKanbanCategory,
+			RoomID:  c.RoomID,
+			Payload: payload,
+		}
+		SendArchive(c, handler.Hub)
 	// Kanban items
-	case utils.NewKanbanItem:
+	case utils.NewKanbanItem: // Create new item
 		var newItem NewItem
 		if err := json.Unmarshal(input.Payload, &newItem); err != nil {
 			c.SendErrorMessage("User error! Failed to create new item")
@@ -275,7 +390,46 @@ func (c *Client) handleMessage(msg []byte, handler *Handler) {
 			RoomID:  c.RoomID,
 			Payload: raw,
 		}
-	case utils.MoveKanbanItem:
+	case utils.RestoreKanbanItem: // Restore deleted item
+		var restoreInput RestoreKanbanItem
+		if err := json.Unmarshal(input.Payload, &restoreInput); err != nil {
+			c.SendErrorMessage("Invalid input to restore item")
+			return
+		}
+		// Get soft-deleted item
+		item, err := daos.GetDeletedItem(restoreInput.ItemID)
+		if err != nil || item == nil {
+			c.SendErrorMessage("Failed to find item to restore")
+			return
+		}
+		// Try to undelete it
+		if err := db.DB.Unscoped().Model(&item).Where("id = ? AND deleted_at IS NOT NULL", item.ID).Update("deleted_at", nil).Error; err != nil {
+			c.SendErrorMessage("Failed to restore item")
+			return
+		}
+		// Get the new item
+		item, err = daos.GetKanbanItem(restoreInput.ItemID)
+		if err != nil || item == nil {
+			c.SendErrorMessage("Failed to restore item")
+			return
+		}
+		// Try to make response
+		response := ItemResponse{
+			Item: *item,
+		}
+		payload, err := response.ToJSON()
+		if err != nil {
+			c.SendErrorMessage("Failed to restore item")
+			return
+		}
+		// Send to clients
+		handler.Hub.Broadcast <- &ws.WSMessage{
+			Type:    utils.RestoreKanbanItem,
+			RoomID:  c.RoomID,
+			Payload: payload,
+		}
+		SendArchive(c, handler.Hub)
+	case utils.MoveKanbanItem: // Move item
 		var moveItem MoveItem
 		if err := json.Unmarshal(input.Payload, &moveItem); err != nil {
 			c.SendErrorMessage("User error! Failed to move item")
@@ -317,7 +471,7 @@ func (c *Client) handleMessage(msg []byte, handler *Handler) {
 			RoomID:  c.RoomID,
 			Payload: payload,
 		}
-	case utils.EditKanbanItem:
+	case utils.EditKanbanItem: // Edit item
 		var updateItem EditItem
 		if err := json.Unmarshal(input.Payload, &updateItem); err != nil {
 			c.SendErrorMessage("User error! Failed to update item")
@@ -342,7 +496,6 @@ func (c *Client) handleMessage(msg []byte, handler *Handler) {
 			c.SendErrorMessage("Server error! Failed to update item")
 			return
 		}
-
 		// Explicitly reload the updated item from the database
 		if err := tx.Model(&item).First(&item).Error; err != nil {
 			tx.Rollback()
@@ -370,7 +523,7 @@ func (c *Client) handleMessage(msg []byte, handler *Handler) {
 			RoomID:  c.RoomID,
 			Payload: payload,
 		}
-	case utils.DeleteKanbanItem:
+	case utils.DeleteKanbanItem: // Mark item deleted
 		var deleteItem DeleteItem
 		if err := json.Unmarshal(input.Payload, &deleteItem); err != nil {
 			c.SendErrorMessage("User error! Failed to remove item")
@@ -410,8 +563,74 @@ func (c *Client) handleMessage(msg []byte, handler *Handler) {
 			RoomID:  c.RoomID,
 			Payload: payload,
 		}
-	// Default
+		SendArchive(c, handler.Hub)
+	case utils.PermaDeleteKanbanItem: // Perma remove item
+		// Check that user is admin
+		if c.Role != datatypes.ADMIN {
+			c.SendErrorMessage("You do not have the rights")
+			return
+		}
+		// Check user input
+		var permaDelete DeleteItem
+		if err := json.Unmarshal(input.Payload, &permaDelete); err != nil {
+			c.SendErrorMessage("Invalid input to delete item")
+			return
+		}
+		// Get soft-deleted item
+		item, err := daos.GetDeletedItem(permaDelete.ItemID)
+		if err != nil {
+			c.SendErrorMessage("No category to delete")
+			return
+		}
+		// Start transaction to perma delete category
+		tx := db.DB.Begin()
+		if err := tx.Unscoped().Delete(&item, "id = ? AND deleted_at IS NOT NULL", item.ID).Error; err != nil {
+			c.SendErrorMessage("Failed to perma delete category")
+			tx.Rollback()
+			return
+		}
+		// Try to create response
+		response := ItemResponse{
+			Item: *item,
+		}
+		payload, err := response.ToJSON()
+		if err != nil {
+			c.SendErrorMessage("Failed to perma delete category")
+			tx.Rollback()
+			return
+		}
+		// Try to commit transaction
+		if err := tx.Commit().Error; err != nil {
+			c.SendErrorMessage("Failed to perma delete category")
+			tx.Rollback()
+			return
+		}
+		// Send response to clients
+		handler.Hub.Broadcast <- &ws.WSMessage{
+			Type:    utils.PermaDeleteKanbanItem,
+			RoomID:  c.RoomID,
+			Payload: payload,
+		}
+		SendArchive(c, handler.Hub)
 	default:
 		return
+	}
+}
+
+func SendArchive(c *Client, hub *Hub) {
+	archive, err := daos.GetKanbanArchive(c.RoomID)
+	if err != nil {
+		return
+	}
+
+	payload, err := json.Marshal(&archive)
+	if err != nil {
+		return
+	}
+
+	hub.Broadcast <- &ws.WSMessage{
+		Type:    utils.KanbanArchive,
+		RoomID:  c.RoomID,
+		Payload: payload,
 	}
 }

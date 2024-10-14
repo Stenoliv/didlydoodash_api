@@ -24,6 +24,7 @@ type SigninInput struct {
 func Signin(c *gin.Context) {
 	var input SigninInput
 	tx := db.DB.Begin()
+	defer tx.Rollback()
 	// Bind request body
 	err := c.BindJSON(&input)
 	if err != nil {
@@ -51,16 +52,19 @@ func Signin(c *gin.Context) {
 	// implement rememberMe
 	refresh, err := jwt.GenerateRefreshToken(user.ID, input.RememberMe, tx)
 	if err != nil {
-		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, utils.ServerError)
 		return
 	}
+	// Commit transaction if all operations are successful
+	if err := tx.Commit().Error; err != nil {
+		c.JSON(http.StatusInternalServerError, utils.ServerError)
+		return
+	}
+
 	tokens := &utils.Tokens{
 		Access:  &access,
 		Refresh: &refresh,
 	}
-
-	tx.Commit()
 	// Send final response
 	c.JSON(http.StatusOK, gin.H{"user": user, "tokens": tokens})
 }
@@ -77,6 +81,7 @@ type SignupInput struct {
 func Signup(c *gin.Context) {
 	var input SignupInput
 	tx := db.DB.Begin()
+	defer tx.Rollback()
 	// Bind request body
 	err := c.BindJSON(&input)
 	if err != nil {
@@ -88,7 +93,6 @@ func Signup(c *gin.Context) {
 	// Try to save new user to database
 	err = user.SaveUser(tx)
 	if err != nil {
-		tx.Rollback()
 		c.JSON(http.StatusBadRequest, utils.InvalidInput)
 		return
 	}
@@ -101,7 +105,6 @@ func Signup(c *gin.Context) {
 	// implement rememberMe
 	refresh, err := jwt.GenerateRefreshToken(user.ID, false, tx)
 	if err != nil {
-		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, utils.ServerError)
 		return
 	}

@@ -1,0 +1,9 @@
+# Ignore environment files
+.env
+.env.example
+Makefile
+
+# You can also ignore other unnecessary files/folders:
+.git
+Dockerfile
+docker-compose.yml

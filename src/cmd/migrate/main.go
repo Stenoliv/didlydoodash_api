@@ -27,24 +27,17 @@ func main() {
 	db.CreateType(datatypes.KanbanItemPriorityName, fmt.Sprintf("ENUM (%s)", KanbanItemPriority))
 
 	// Check all tables for users
-	db.DB.AutoMigrate(&models.User{})
-	db.DB.AutoMigrate(&models.UserSession{})
+	db.DB.AutoMigrate(&models.User{}, &models.UserSession{})
 
 	// Check all tables for organisations
-	db.DB.AutoMigrate(&models.Organisation{})
-	db.DB.AutoMigrate(&models.OrganisationMember{})
-	db.DB.AutoMigrate(&models.ChatRoom{})
-	db.DB.AutoMigrate(&models.ChatMember{})
-	db.DB.AutoMigrate(&models.ChatMessage{})
+	db.DB.AutoMigrate(&models.Organisation{}, &models.OrganisationMember{})
+	db.DB.AutoMigrate(&models.ChatRoom{}, &models.ChatMember{}, &models.ChatMessage{})
 
 	// Check all tables for projects
-	db.DB.AutoMigrate(&models.Project{})
-	db.DB.AutoMigrate(&models.ProjectMember{})
+	db.DB.AutoMigrate(&models.Project{}, &models.ProjectMember{})
 
 	// Check all tables for kanbans
-	db.DB.AutoMigrate(&models.Kanban{})
-	db.DB.AutoMigrate(&models.KanbanCategory{})
-	db.DB.AutoMigrate(&models.KanbanItem{})
+	db.DB.AutoMigrate(&models.Kanban{}, &models.KanbanCategory{}, &models.KanbanItem{})
 
 	db.DB.AutoMigrate(&models.WhiteboardRoom{})
 	db.DB.AutoMigrate(&models.LineData{})

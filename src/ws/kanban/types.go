@@ -7,7 +7,8 @@ import (
 
 // Join kanban room message
 type JoinMessage struct {
-	Kanban models.Kanban `json:"kanban"`
+	Kanban  models.Kanban              `json:"kanban"`
+	Archive []models.KanbanArchiveItem `json:"archive"`
 }
 
 func (m *JoinMessage) ToJSON() ([]byte, error) {
@@ -32,15 +33,19 @@ type NewCategory struct {
 	Name string `json:"name"`
 }
 
+type RestoreKanbanCategory struct {
+	ID string `json:"id" binding:"required"`
+}
+
 // Edit category websocket message
 type EditCategory struct {
-	ID   string `json:"id"`
+	ID   string `json:"id" binding:"required"`
 	Name string `json:"name"`
 }
 
 // Delete category websocket message
 type DeleteCategory struct {
-	ID string
+	ID string `json:"id" binding:"required"`
 }
 
 // Category response
@@ -60,6 +65,10 @@ func (m *CategoryResponse) ToJSON() ([]byte, error) {
 type NewItem struct {
 	CategoryID string `json:"categoryId" binding:"required"`
 	Name       string `json:"name"`
+}
+
+type RestoreKanbanItem struct {
+	ItemID string `json:"itemId" binding:"required"`
 }
 
 type MoveItem struct {

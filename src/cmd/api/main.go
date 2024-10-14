@@ -8,7 +8,12 @@ import (
 	"DidlyDoodash-api/src/ws/chat"
 	"DidlyDoodash-api/src/ws/kanban"
 	"DidlyDoodash-api/src/ws/whiteboardws"
+	"context"
 	"fmt"
+	"log"
+	"net/http"
+	"os"
+	"os/signal"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -16,15 +21,15 @@ import (
 )
 
 func main() {
-	gin.SetMode(gin.DebugMode)
+	// Set the Gin mode based on the environment variable
+	gin.SetMode(gin.DebugMode) // Default to debug mode
 	r := gin.New()
-
 	r.Use(gin.Recovery())
 	r.Use(middleware.RequestLoggerMiddleware())
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:5000"},
-		AllowMethods:     []string{"POST", "PATCH", "GET", "DELETE"},
-		AllowHeaders:     []string{"Origin"},
+		AllowOrigins:     []string{"http://localhost:5000"},                     // Add your frontend URL
+		AllowMethods:     []string{"POST", "PATCH", "GET", "DELETE", "OPTIONS"}, // Include OPTIONS
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},   // Specify headers
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
@@ -79,7 +84,7 @@ func main() {
 		organisation.DELETE("/:id/announcements/:announcementID", handlers.DeleteAnnouncement)
 		organisation.POST("/:id/announcements", handlers.CreateAnnouncement)
 		// Organisation chats notifcations
-		organisation.GET("/notifications", chatHandler.NotificationHandler)
+		organisation.GET("/:id/chats/notifications", chatHandler.NotificationHandler)
 
 		// Projects endpoints
 		project := organisation.Group("/:id/projects", middleware.ProjectMiddleware())
@@ -107,6 +112,9 @@ func main() {
 				kanbans.POST("", handlers.CreateKanban)
 				kanbans.DELETE("/:kanbanID", nil)
 
+				// Kanban archive
+				kanbans.GET("/:kanbanID/archive", handlers.GetArchive)
+
 				// WS
 				kanbans.GET("/:kanbanID", kanbanHandler.JoinKanban)
 			}
@@ -125,5 +133,29 @@ func main() {
 
 	}
 
-	r.Run(fmt.Sprintf(":%s", config.PORT))
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%s", config.PORT),
+		Handler: r,
+	}
+
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("Listen: %s\n", err)
+		}
+	}()
+
+	// Wait for interrupt signal to gracefully shutdown the server
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt)
+	<-quit
+
+	// Create a context with a timeout for the shutdown process
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("Server forced to shutdown: %v", err)
+	}
+
+	log.Println("Server exiting")
 }

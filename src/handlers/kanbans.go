@@ -70,3 +70,16 @@ func CreateKanban(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"kanban": kanban})
 }
+
+func GetArchive(c *gin.Context) {
+	kanbanID := c.Param("kanbanID")
+
+	// Get archive from database
+	archive, err := daos.GetKanbanArchive(kanbanID)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, utils.KanbanNotFound)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"archive": archive})
+}

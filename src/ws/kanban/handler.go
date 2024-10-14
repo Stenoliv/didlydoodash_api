@@ -23,9 +23,9 @@ func (h *Handler) JoinKanban(c *gin.Context) {
 	projectID := c.Param("projectID")
 	kanbanID := c.Param("kanbanID")
 
-	project, err := daos.GetProject(projectID)
-	if err != nil || project == nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, utils.ProjectNotFound)
+	member, err := daos.GetProjectMember(projectID, *models.CurrentUser)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusForbidden, utils.ProjectMemberNotFound)
 		return
 	}
 
@@ -40,6 +40,7 @@ func (h *Handler) JoinKanban(c *gin.Context) {
 		Message: make(chan *ws.WSMessage),
 		RoomID:  kanbanID,
 		UserID:  *models.CurrentUser,
+		Role:    member.Role,
 	}
 
 	h.Hub.Register <- client

@@ -22,3 +22,11 @@ func GetProject(projectID string) (*models.Project, error) {
 	}
 	return &project, nil
 }
+
+func GetProjectMember(projectID string, userID string) (*models.ProjectMember, error) {
+	var member models.ProjectMember
+	if err := db.DB.Model(member).Where("project_id = ? AND user_id = ?", projectID, userID).First(&member).Error; err != nil {
+		return nil, err
+	}
+	return &member, nil
+}

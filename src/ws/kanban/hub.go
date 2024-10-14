@@ -75,9 +75,16 @@ func ClientRegister(h *Hub, client *Client) {
 		return
 	}
 
+	archive, err := daos.GetKanbanArchive(client.RoomID)
+	if err != nil {
+		client.SendErrorMessage("Failed to get kanban archive")
+		return
+	}
+
 	// Join message
 	payload := &JoinMessage{
-		Kanban: *kanban,
+		Kanban:  *kanban,
+		Archive: archive,
 	}
 
 	// Turn payload into json

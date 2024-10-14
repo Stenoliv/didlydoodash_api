@@ -47,6 +47,7 @@ type KanbanCategory struct {
 	Base
 	DeletedAt gorm.DeletedAt `gorm:"" json:"deletedAt"`
 	KanbanID  string         `gorm:"size:21;not null;" json:"kanbanId"`
+	Kanban    Kanban         `gorm:"constraint:OnUpdate:CASCADE;OnDelete:CASCADE;" json:"-"`
 	Name      string         `gorm:"size:50;" json:"name"`
 	Items     []KanbanItem   `gorm:"" json:"items"`
 }
@@ -65,6 +66,13 @@ func (k *KanbanCategory) AfterFind(tx *gorm.DB) error {
 	return nil
 }
 
+func (k *KanbanCategory) BeforeDelete(tx *gorm.DB) error {
+	if err := tx.Model(&k.Items).Where("kanban_category_id = ?", k.ID).Update("deleted_at", gorm.DeletedAt{Time: time.Now(), Valid: true}).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 func (k *KanbanCategory) SaveCategory(tx *gorm.DB) error {
 	return tx.Create(&k).Error
 }
@@ -73,14 +81,13 @@ func (k *KanbanCategory) SaveCategory(tx *gorm.DB) error {
 type KanbanItem struct {
 	Base
 	KanbanCategoryID string                       `gorm:"size:21;not nill;" json:"categoryId"`
+	KanbanCategory   KanbanCategory               `gorm:"constraint:OnUpdate:CASCADE;OnDelete:CASCADE;" json:"-"`
 	DeletedAt        gorm.DeletedAt               `gorm:"" json:"deletedAt"`
+	Priority         datatypes.KanbanItemPriority `gorm:"type:kanban_item_priority;default:None;not null;" json:"priority"`
 	DueDate          *time.Time                   `gorm:"null" json:"due_date"`
 	EstimatedTime    *int                         `gorm:"null" json:"estimated_time"`
-	Priority         datatypes.KanbanItemPriority `gorm:"type:kanban_item_priority;default:None;not null;" json:"priority"`
 	Title            string                       `gorm:"size:40;not null;" json:"title"`
 	Description      string                       `gorm:"" json:"description"`
-	AssignedID       *string                      `gorm:"size:21;null" json:"-"`
-	Assigned         User                         `gorm:"constraint:OnUpdate:CASCADE;OnDelete:CASCADE;" json:"assigned"`
 }
 
 func (k *KanbanItem) BeforeCreate(tx *gorm.DB) error {
@@ -92,4 +99,12 @@ func (k *KanbanItem) BeforeCreate(tx *gorm.DB) error {
 
 func (k *KanbanItem) SaveItem(tx *gorm.DB) error {
 	return tx.Create(&k).Error
+}
+
+// Kanban archive struct
+type KanbanArchiveItem struct {
+	ID        string         `json:"id"`
+	Type      string         `json:"type"` // "category" or "item"
+	DeletedAt gorm.DeletedAt `json:"deletedAt"`
+	Name      string         `json:"name"`
 }

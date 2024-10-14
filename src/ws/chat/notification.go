@@ -3,6 +3,7 @@ package chat
 import (
 	"DidlyDoodash-api/src/db/daos"
 	"encoding/json"
+	"log"
 
 	"github.com/gorilla/websocket"
 )
@@ -76,12 +77,12 @@ func (hub *NotificationHub) run() {
 			case MessageNew:
 				var newMessage NewMessage
 				if err := json.Unmarshal(message.Payload, &newMessage); err != nil {
-					return
+					continue
 				}
 
 				room, err := daos.GetChat(newMessage.ChatID)
 				if err != nil || room == nil {
-					return
+					continue
 				}
 
 				for _, member := range room.Members {
@@ -101,11 +102,13 @@ func (hub *NotificationHub) NewNotification(notificationType string, payload jso
 func sendUnreadMessagesOnJoin(c *NotificationClient) {
 	org, err := daos.GetOrg(c.OrgID)
 	if err != nil || org == nil {
+		log.Println("Failed to get organisation in notification")
 		return
 	}
 
 	chats, err := daos.GetChats(org.ID)
 	if err != nil {
+		log.Println("Failed to get chats in notification")
 		return
 	}
 

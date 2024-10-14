@@ -1,0 +1,22 @@
+services:
+  # API service
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081" # Map host port 8081 to container port 8081
+    environment:
+      - API_PORT=8081
+      - TOKEN_SECRET=asdknasjdbakjbdiuawbeiybajkdnkasndmhkbfihagwiura
+      - TOKEN_TIME_ACCESS=150
+      - TOKEN_TIME_REFRESH=168
+      - TOKEN_REMEMBER_REFRESH=8760
+      - DB_NAME=defaultdb
+      - DB_HOST=didlydoodash-db-didlydoodash.k.aivencloud.com
+      - DB_PORT=14575
+      - DB_USER=avnadmin
+      - DB_PASSWORD=********
+      - DB_SSL=require
+      - DB_TIMEZONE=Europe/Helsinki
+      - MODE=debug
