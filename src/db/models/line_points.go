@@ -19,7 +19,7 @@ func (l *LinePoint) SaveLinePoint(tx *gorm.DB) error {
 	return nil
 }
 func (ld *LineData) AfterFind(tx *gorm.DB) error {
-	if err := tx.Model(&LinePoint{}).Where("line_data_id = ?", ld.ID).Order("created_at ASC").Find(&ld).Error; err != nil {
+	if err := tx.Model(&LinePoint{}).Where("line_data_id = ?", ld.ID).Find(&ld.Points).Error; err != nil {
 		return err
 	}
 	return nil

@@ -63,6 +63,7 @@ func (c *Client) readMessage(handler *Wbhandler) {
 		for _, point := range input.Payload.Points {
 			pt := models.LinePoint{Point: point, LineDataID: data.ID}
 			if err := pt.SaveLinePoint(tx); err != nil {
+				fmt.Println("error in looping of points")
 				tx.Rollback()
 				return
 			}
@@ -74,6 +75,7 @@ func (c *Client) readMessage(handler *Wbhandler) {
 			tx.Rollback()
 			return
 		}
+		fmt.Println(input)
 		handler.Hub.Broadcast <- &input
 
 	}

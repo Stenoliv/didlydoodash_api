@@ -46,12 +46,15 @@ func (h *Hub) run() {
 			h.mu.Unlock()
 			var arr []models.LineData
 			if err := db.DB.Model(&models.LineData{}).Where("whiteboard_id = ?", client.RoomID).Find(&arr).Error; err != nil {
-				return
+
+				continue
 			}
-			var points []float64
+
 			for _, data := range arr {
+				var points []float64
 
 				for _, point := range data.Points {
+
 					points = append(points, point.Point)
 				}
 				message := &WhiteboardMessage{RoomID: client.RoomID, Payload: linedata{
@@ -61,7 +64,7 @@ func (h *Hub) run() {
 					Text:        data.Text,
 					Points:      points,
 				}}
-				h.Broadcast <- message
+				client.Message <- message
 			}
 
 		case client := <-h.Unregister:
