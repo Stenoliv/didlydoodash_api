@@ -22,7 +22,11 @@ import (
 
 func main() {
 	// Set the Gin mode based on the environment variable
-	gin.SetMode(gin.DebugMode) // Default to debug mode
+	if os.Getenv("MODE") == "production" {
+		gin.SetMode(gin.ReleaseMode) // Default to production mode
+	} else {
+		gin.SetMode(gin.DebugMode) // Default to debug mode
+	}
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.Use(middleware.RequestLoggerMiddleware())
