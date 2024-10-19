@@ -1,10 +1,10 @@
 # Stage 1: Build the Go binaries using the official Golang image
-FROM golang:1.22.3 AS builder
+FROM golang:1.22 AS builder
 
 WORKDIR /app
 
 # Environment variables
-ENV API_PORT=8081
+ENV API_PORT=3000
 ENV TOKEN_SECRET=asdknasjdbakjbdiuawbeiybajkdnkasndmhkbfihagwiura
 ENV TOKEN_TIME_ACCESS=150
 ENV TOKEN_TIME_REFRESH=168
@@ -37,7 +37,7 @@ FROM alpine:latest
 WORKDIR /api
 
 # Environment variables
-ENV API_PORT=8081
+ENV API_PORT=3000
 ENV TOKEN_SECRET=asdknasjdbakjbdiuawbeiybajkdnkasndmhkbfihagwiura
 ENV TOKEN_TIME_ACCESS=150
 ENV TOKEN_TIME_REFRESH=168
