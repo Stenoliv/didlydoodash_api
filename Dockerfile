@@ -52,12 +52,16 @@ ENV DB_TIMEZONE=Europe/Helsinki
 ENV MODE=production
 
 # Copy the built binaries and the startup script from the builder stage
-COPY --from=builder /app/didlydoodash-api /app/didlydoodash-migrate /app/start.sh ./
+COPY --from=builder /app/didlydoodash-api /app/didlydoodash-migrate /app/start.sh /app/ca.pem ./
+
+# Ensure the script has unix line endings
+RUN sed -i 's/\r$//' start.sh
+
 # Give execution permissions to the startup script
 RUN chmod +x start.sh
 
 # Expose the port the API will run on
-EXPOSE 8081
+EXPOSE 3000
 
 # Set the startup script as the container's entry point
-CMD ["./start.sh"]
+ENTRYPOINT ["sh","./start.sh"]
