@@ -32,7 +32,7 @@ func main() {
 	r.Use(middleware.RequestLoggerMiddleware())
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},                                                 // Add your frontend URL
-		AllowMethods:     []string{"POST", "PATCH", "GET", "DELETE", "OPTIONS"},         // Include OPTIONS
+		AllowMethods:     []string{"POST", "PUT", "PATCH", "GET", "DELETE", "OPTIONS"},  // Include OPTIONS
 		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "_retry"}, // Specify headers
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,

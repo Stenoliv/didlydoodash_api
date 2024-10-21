@@ -123,6 +123,7 @@ func (c *Client) handleMessage(msg []byte, handler *Handler) {
 			c.SendErrorMessage("Server error! Failed to update kanban")
 			return
 		}
+		editKanban.SenderID = c.UserID
 		// turn into response
 		payload, err := editKanban.ToJSON()
 		if err != nil {
@@ -159,6 +160,7 @@ func (c *Client) handleMessage(msg []byte, handler *Handler) {
 		}
 		payload := &CategoryResponse{
 			Category: *category,
+			SenderID: c.UserID,
 		}
 		raw, err := payload.ToJSON()
 		if err != nil {
@@ -206,6 +208,7 @@ func (c *Client) handleMessage(msg []byte, handler *Handler) {
 		// Create response
 		response := &CategoryResponse{
 			Category: *category,
+			SenderID: c.UserID,
 		}
 		payload, err := response.ToJSON()
 		if err != nil {
@@ -241,6 +244,7 @@ func (c *Client) handleMessage(msg []byte, handler *Handler) {
 		// Create raw json of response
 		response := &CategoryResponse{
 			Category: *category,
+			SenderID: c.UserID,
 		}
 		payload, err := response.ToJSON()
 		if err != nil {
@@ -281,6 +285,7 @@ func (c *Client) handleMessage(msg []byte, handler *Handler) {
 		// Create raw json of response
 		deleteCategoryResponse := &CategoryResponse{
 			Category: *category,
+			SenderID: c.UserID,
 		}
 		payload, err := json.Marshal(&deleteCategoryResponse)
 		if err != nil {
@@ -329,6 +334,7 @@ func (c *Client) handleMessage(msg []byte, handler *Handler) {
 		// Try to create response
 		response := CategoryResponse{
 			Category: *category,
+			SenderID: c.UserID,
 		}
 		payload, err := response.ToJSON()
 		if err != nil {
@@ -370,7 +376,8 @@ func (c *Client) handleMessage(msg []byte, handler *Handler) {
 		}
 		// Create response payload and jsonify
 		payload := &ItemResponse{
-			Item: *item,
+			Item:     *item,
+			SenderID: c.UserID,
 		}
 		raw, err := payload.ToJSON()
 		if err != nil {
@@ -415,7 +422,8 @@ func (c *Client) handleMessage(msg []byte, handler *Handler) {
 		}
 		// Try to make response
 		response := ItemResponse{
-			Item: *item,
+			Item:     *item,
+			SenderID: c.UserID,
 		}
 		payload, err := response.ToJSON()
 		if err != nil {
@@ -504,7 +512,8 @@ func (c *Client) handleMessage(msg []byte, handler *Handler) {
 		}
 		// Try to make response
 		response := &ItemResponse{
-			Item: *item,
+			Item:     *item,
+			SenderID: c.UserID,
 		}
 		payload, err := json.Marshal(&response)
 		if err != nil {
@@ -544,7 +553,8 @@ func (c *Client) handleMessage(msg []byte, handler *Handler) {
 		}
 		// Try to make response
 		response := &ItemResponse{
-			Item: *item,
+			Item:     *item,
+			SenderID: c.UserID,
 		}
 		payload, err := json.Marshal(&response)
 		if err != nil {
@@ -591,7 +601,8 @@ func (c *Client) handleMessage(msg []byte, handler *Handler) {
 		}
 		// Try to create response
 		response := ItemResponse{
-			Item: *item,
+			Item:     *item,
+			SenderID: c.UserID,
 		}
 		payload, err := response.ToJSON()
 		if err != nil {
