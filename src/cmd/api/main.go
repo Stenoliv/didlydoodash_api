@@ -31,9 +31,9 @@ func main() {
 	r.Use(gin.Recovery())
 	r.Use(middleware.RequestLoggerMiddleware())
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"https://wom.rasmus-raiha.com", "http://localhost:3000", "https://didlydoodash.azurewebsites.net"},                                         // Add your frontend URL
-		AllowMethods:     []string{"POST", "PATCH", "GET", "DELETE", "OPTIONS"}, // Include OPTIONS
-		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "_retry"},   // Specify headers
+		AllowOrigins:     []string{"*"},                                                 // Add your frontend URL
+		AllowMethods:     []string{"POST", "PUT", "PATCH", "GET", "DELETE", "OPTIONS"},  // Include OPTIONS
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization", "_retry"}, // Specify headers
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,

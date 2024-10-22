@@ -16,8 +16,9 @@ func (m *JoinMessage) ToJSON() ([]byte, error) {
 }
 
 type EditKanban struct {
-	ID      string                 `json:"id" binding:"required"`
-	Updates map[string]interface{} `json:"updates"`
+	ID       string                 `json:"id" binding:"required"`
+	Updates  map[string]interface{} `json:"updates"`
+	SenderID string                 `json:"userId"`
 }
 
 func (m *EditKanban) ToJSON() ([]byte, error) {
@@ -51,6 +52,7 @@ type DeleteCategory struct {
 // Category response
 type CategoryResponse struct {
 	Category models.KanbanCategory `json:"category"`
+	SenderID string                `json:"userId"`
 }
 
 func (m *CategoryResponse) ToJSON() ([]byte, error) {
@@ -92,7 +94,8 @@ type DeleteItem struct {
 }
 
 type ItemResponse struct {
-	Item models.KanbanItem `json:"item"`
+	Item     models.KanbanItem `json:"item"`
+	SenderID string            `json:"userId"`
 }
 
 func (m *ItemResponse) ToJSON() ([]byte, error) {
