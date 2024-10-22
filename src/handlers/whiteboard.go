@@ -72,7 +72,7 @@ func DeleteWhiteboard(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, utils.WhiteboardNotFound)
 		return
 	}
-	// Try to delete wb from database
+	// Try to delete whiteboard from database
 	if err := db.DB.Delete(&whiteboard, "id = ?", whiteboard.ID).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, utils.ServerError)
 		return
